@@ -1,12 +1,13 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, Github, Mail } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -14,16 +15,49 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { signIn, signUp, user } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // If already signed in, bounce to dashboard.
+  if (user) {
+    throw redirect({ to: "/dashboard" });
+  }
+
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [signupName, setSignupName] = useState("");
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Placeholder — wire up real auth later
-    setTimeout(() => {
+    try {
+      await signIn(loginEmail, loginPassword);
       toast.success("Welcome back!");
       navigate({ to: "/dashboard" });
-    }, 600);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sign in failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (signupPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    setLoading(true);
+    try {
+      await signUp(signupEmail, signupPassword, signupName);
+      toast.success("Account created! Check your email to confirm, then sign in.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Sign up failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,56 +79,85 @@ function LoginPage() {
             </TabsList>
 
             <TabsContent value="login" className="mt-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="you@brand.com" required />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@brand.com"
+                    required
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" placeholder="••••••••" required />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                  />
                 </div>
-                <Button disabled={loading} type="submit" className="w-full bg-gradient-primary shadow-glow hover:opacity-90">
+                <Button
+                  disabled={loading}
+                  type="submit"
+                  className="w-full bg-gradient-primary shadow-glow hover:opacity-90"
+                >
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {loading ? "Signing in…" : "Sign in"}
                 </Button>
               </form>
             </TabsContent>
 
             <TabsContent value="signup" className="mt-6">
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full name</Label>
-                  <Input id="name" placeholder="Jane Doe" required />
+                  <Input
+                    id="name"
+                    placeholder="Jane Doe"
+                    required
+                    value={signupName}
+                    onChange={(e) => setSignupName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email-s">Email</Label>
-                  <Input id="email-s" type="email" placeholder="you@brand.com" required />
+                  <Input
+                    id="email-s"
+                    type="email"
+                    placeholder="you@brand.com"
+                    required
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password-s">Password</Label>
-                  <Input id="password-s" type="password" placeholder="At least 8 characters" required />
+                  <Input
+                    id="password-s"
+                    type="password"
+                    placeholder="At least 6 characters"
+                    required
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
+                  />
                 </div>
-                <Button disabled={loading} type="submit" className="w-full bg-gradient-primary shadow-glow hover:opacity-90">
+                <Button
+                  disabled={loading}
+                  type="submit"
+                  className="w-full bg-gradient-primary shadow-glow hover:opacity-90"
+                >
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {loading ? "Creating account…" : "Create account"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
-
-          <div className="my-6 flex items-center gap-3">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-xs text-muted-foreground">OR</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-
-          <div className="grid gap-2">
-            <Button variant="outline" className="w-full" onClick={() => navigate({ to: "/dashboard" })}>
-              <Mail className="mr-2 h-4 w-4" /> Continue with Google
-            </Button>
-            <Button variant="outline" className="w-full" onClick={() => navigate({ to: "/dashboard" })}>
-              <Github className="mr-2 h-4 w-4" /> Continue with GitHub
-            </Button>
-          </div>
         </Card>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
