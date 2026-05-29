@@ -4,9 +4,15 @@ import { callLovableAIJson } from "./ai-gateway.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 async function saveGenerationRow(
-  supabase: ReturnType<typeof requireSupabaseAuth> extends never ? never : any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   userId: string,
-  row: { type: "caption" | "adcopy" | "product" | "image"; title: string; input: unknown; output: unknown },
+  row: {
+    type: "caption" | "adcopy" | "product" | "image";
+    title: string;
+    input: unknown;
+    output: unknown;
+  },
 ) {
   const { data, error } = await supabase
     .from("generations")
@@ -14,8 +20,8 @@ async function saveGenerationRow(
       user_id: userId,
       type: row.type,
       title: row.title,
-      input: row.input as never,
-      output: row.output as never,
+      input: row.input,
+      output: row.output,
     })
     .select()
     .single();
