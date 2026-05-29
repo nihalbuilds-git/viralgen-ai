@@ -22,8 +22,8 @@ export const saveGeneration = createServerFn({ method: "POST" })
         user_id: userId,
         type: data.type,
         title: data.title,
-        input: data.input,
-        output: data.output,
+        input: data.input as never,
+        output: data.output as never,
       })
       .select()
       .single();
