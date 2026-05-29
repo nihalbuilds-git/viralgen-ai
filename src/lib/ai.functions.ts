@@ -1,6 +1,33 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callLovableAIJson } from "./ai-gateway.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function saveGenerationRow(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+  row: {
+    type: "caption" | "adcopy" | "product" | "image";
+    title: string;
+    input: unknown;
+    output: unknown;
+  },
+) {
+  const { data, error } = await supabase
+    .from("generations")
+    .insert({
+      user_id: userId,
+      type: row.type,
+      title: row.title,
+      input: row.input,
+      output: row.output,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
 
 // ---------- Captions ----------
 const CaptionInput = z.object({
@@ -11,8 +38,9 @@ const CaptionInput = z.object({
 });
 
 export const generateCaptionsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CaptionInput.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const result = await callLovableAIJson<{ captions: string[] }>({
       messages: [
         {
@@ -31,7 +59,14 @@ Respond as JSON: { "captions": ["caption 1", "caption 2", "caption 3"] }`,
     if (!Array.isArray(result.captions) || result.captions.length === 0) {
       throw new Error("Model returned no captions");
     }
-    return { captions: result.captions.slice(0, 3) };
+    const captions = result.captions.slice(0, 3);
+    const saved = await saveGenerationRow(context.supabase, context.userId, {
+      type: "caption",
+      title: `${data.platform} · ${data.product.slice(0, 60)}`,
+      input: data,
+      output: { captions },
+    });
+    return { captions, generationId: saved.id };
   });
 
 // ---------- Ad Copy ----------
@@ -45,8 +80,9 @@ const AdCopyInput = z.object({
 export type AdCopyResult = { headline: string; primaryText: string; cta: string };
 
 export const generateAdCopyFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => AdCopyInput.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const result = await callLovableAIJson<AdCopyResult>({
       messages: [
         {
@@ -70,7 +106,13 @@ Respond as JSON: { "headline": "...", "primaryText": "...", "cta": "..." }`,
     if (!result.headline || !result.primaryText || !result.cta) {
       throw new Error("Incomplete ad copy returned");
     }
-    return result;
+    const saved = await saveGenerationRow(context.supabase, context.userId, {
+      type: "adcopy",
+      title: `Ad · ${data.product.slice(0, 60)}`,
+      input: data,
+      output: result,
+    });
+    return { ...result, generationId: saved.id };
   });
 
 // ---------- Product Description ----------
@@ -81,8 +123,9 @@ const ProductInput = z.object({
 });
 
 export const generateProductDescriptionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ProductInput.parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const result = await callLovableAIJson<{ description: string }>({
       messages: [
         {
@@ -100,5 +143,11 @@ Respond as JSON: { "description": "..." }`,
       ],
     });
     if (!result.description) throw new Error("Empty description returned");
-    return result;
+    const saved = await saveGenerationRow(context.supabase, context.userId, {
+      type: "product",
+      title: `Product · ${data.name}`,
+      input: data,
+      output: result,
+    });
+    return { description: result.description, generationId: saved.id };
   });

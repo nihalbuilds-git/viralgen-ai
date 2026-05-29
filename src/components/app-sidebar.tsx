@@ -8,6 +8,8 @@ import {
   User,
   Sparkles,
   CreditCard,
+  History,
+  Star,
 } from "lucide-react";
 import {
   Sidebar,
@@ -24,6 +26,8 @@ import {
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "History", url: "/dashboard/history", icon: History },
+  { title: "Favorites", url: "/dashboard/favorites", icon: Star },
   { title: "Profile", url: "/dashboard/profile", icon: User },
 ];
 

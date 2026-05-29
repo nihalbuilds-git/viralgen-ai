@@ -1,97 +1,127 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { User, Camera } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { User, Loader2, Save } from "lucide-react";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { getMyProfile, updateMyProfile } from "@/lib/profile.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/dashboard/profile")({
   component: ProfilePage,
 });
 
 function ProfilePage() {
-  const [saving, setSaving] = useState(false);
-  const save = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
-      toast.success("Profile saved");
-    }, 600);
-  };
+  const { user } = useAuth();
+  const get = useServerFn(getMyProfile);
+  const upd = useServerFn(updateMyProfile);
+  const qc = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["profile"],
+    queryFn: () => get(),
+  });
+
+  const [displayName, setDisplayName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [brandVoice, setBrandVoice] = useState("");
+
+  useEffect(() => {
+    if (data) {
+      setDisplayName(data.display_name ?? "");
+      setAvatarUrl(data.avatar_url ?? "");
+      setBrandVoice(data.brand_voice ?? "");
+    }
+  }, [data]);
+
+  const mut = useMutation({
+    mutationFn: () =>
+      upd({
+        data: {
+          display_name: displayName || null,
+          avatar_url: avatarUrl || null,
+          brand_voice: brandVoice || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Profile updated");
+      qc.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 animate-fade-in">
-      <div className="flex items-start gap-4">
+    <div className="mx-auto max-w-3xl space-y-6 animate-fade-in">
+      <div className="flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
           <User className="h-5 w-5 text-primary-foreground" />
         </div>
         <div>
           <h1 className="font-display text-3xl font-bold">Profile</h1>
-          <p className="mt-1 text-muted-foreground">Manage your account and brand voice.</p>
+          <p className="text-muted-foreground">Manage your account and brand voice.</p>
         </div>
       </div>
 
-      <Card className="border-border/60 bg-gradient-card p-6">
-        <div className="flex items-center gap-5">
-          <div className="relative">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-primary text-2xl font-bold text-primary-foreground shadow-glow">
-              JD
-            </div>
-            <button className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card shadow">
-              <Camera className="h-3.5 w-3.5" />
-            </button>
-          </div>
-          <div>
-            <h3 className="font-display text-lg font-semibold">Jane Doe</h3>
-            <p className="text-sm text-muted-foreground">jane@brand.com</p>
-            <Badge className="mt-2 bg-gradient-primary">Pro plan</Badge>
-          </div>
+      <Card className="border-border/60 bg-gradient-card p-6 space-y-4">
+        <div className="space-y-2">
+          <Label>Email</Label>
+          <Input value={user?.email ?? ""} disabled />
         </div>
-      </Card>
 
-      <form onSubmit={save}>
-        <Card className="border-border/60 bg-gradient-card p-6">
-          <h3 className="font-display text-lg font-semibold">Account details</h3>
-          <Separator className="my-4" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="fn">Full name</Label>
-              <Input id="fn" defaultValue="Jane Doe" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="em">Email</Label>
-              <Input id="em" type="email" defaultValue="jane@brand.com" />
-            </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="brand">Brand voice</Label>
-              <Textarea id="brand" rows={4} placeholder="Describe your tone, style, audience, and what to avoid…" defaultValue="Warm, witty, and confident. Speaks to creators 25–40. Avoid jargon." />
-            </div>
+        {isLoading ? (
+          <div className="flex justify-center py-6">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
-
-          <h3 className="mt-8 font-display text-lg font-semibold">Subscription</h3>
-          <Separator className="my-4" />
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Pro — $29/mo</p>
-              <p className="text-sm text-muted-foreground">Renews on April 14, 2026</p>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display name</Label>
+              <Input
+                id="displayName"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Jane Doe"
+              />
             </div>
-            <Button variant="outline" type="button">Manage</Button>
-          </div>
-
-          <div className="mt-8 flex justify-end gap-2">
-            <Button type="button" variant="ghost">Cancel</Button>
-            <Button type="submit" disabled={saving} className="bg-gradient-primary shadow-glow hover:opacity-90">
-              {saving ? "Saving…" : "Save changes"}
+            <div className="space-y-2">
+              <Label htmlFor="avatarUrl">Avatar URL</Label>
+              <Input
+                id="avatarUrl"
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder="https://…"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brandVoice">Brand voice</Label>
+              <Textarea
+                id="brandVoice"
+                value={brandVoice}
+                onChange={(e) => setBrandVoice(e.target.value)}
+                placeholder="Describe your brand's tone and style — used to personalize future generations."
+                rows={5}
+              />
+            </div>
+            <Button
+              onClick={() => mut.mutate()}
+              disabled={mut.isPending}
+              className="bg-gradient-primary shadow-glow hover:opacity-90"
+            >
+              {mut.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Save changes
             </Button>
-          </div>
-        </Card>
-      </form>
+          </>
+        )}
+      </Card>
     </div>
   );
 }

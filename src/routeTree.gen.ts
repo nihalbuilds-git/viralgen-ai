@@ -17,6 +17,8 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardProductRouteImport } from './routes/dashboard.product'
 import { Route as DashboardImageRouteImport } from './routes/dashboard.image'
+import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
+import { Route as DashboardFavoritesRouteImport } from './routes/dashboard.favorites'
 import { Route as DashboardCaptionRouteImport } from './routes/dashboard.caption'
 import { Route as DashboardAdcopyRouteImport } from './routes/dashboard.adcopy'
 
@@ -60,6 +62,16 @@ const DashboardImageRoute = DashboardImageRouteImport.update({
   path: '/image',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardHistoryRoute = DashboardHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFavoritesRoute = DashboardFavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardCaptionRoute = DashboardCaptionRouteImport.update({
   id: '/caption',
   path: '/caption',
@@ -78,6 +90,8 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
+  '/dashboard/favorites': typeof DashboardFavoritesRoute
+  '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/image': typeof DashboardImageRoute
   '/dashboard/product': typeof DashboardProductRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -89,6 +103,8 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
+  '/dashboard/favorites': typeof DashboardFavoritesRoute
+  '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/image': typeof DashboardImageRoute
   '/dashboard/product': typeof DashboardProductRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -102,6 +118,8 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
+  '/dashboard/favorites': typeof DashboardFavoritesRoute
+  '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/image': typeof DashboardImageRoute
   '/dashboard/product': typeof DashboardProductRoute
   '/dashboard/profile': typeof DashboardProfileRoute
@@ -116,6 +134,8 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/dashboard/adcopy'
     | '/dashboard/caption'
+    | '/dashboard/favorites'
+    | '/dashboard/history'
     | '/dashboard/image'
     | '/dashboard/product'
     | '/dashboard/profile'
@@ -127,6 +147,8 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/dashboard/adcopy'
     | '/dashboard/caption'
+    | '/dashboard/favorites'
+    | '/dashboard/history'
     | '/dashboard/image'
     | '/dashboard/product'
     | '/dashboard/profile'
@@ -139,6 +161,8 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/dashboard/adcopy'
     | '/dashboard/caption'
+    | '/dashboard/favorites'
+    | '/dashboard/history'
     | '/dashboard/image'
     | '/dashboard/product'
     | '/dashboard/profile'
@@ -210,6 +234,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardImageRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/history': {
+      id: '/dashboard/history'
+      path: '/history'
+      fullPath: '/dashboard/history'
+      preLoaderRoute: typeof DashboardHistoryRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/favorites': {
+      id: '/dashboard/favorites'
+      path: '/favorites'
+      fullPath: '/dashboard/favorites'
+      preLoaderRoute: typeof DashboardFavoritesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/caption': {
       id: '/dashboard/caption'
       path: '/caption'
@@ -230,6 +268,8 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardAdcopyRoute: typeof DashboardAdcopyRoute
   DashboardCaptionRoute: typeof DashboardCaptionRoute
+  DashboardFavoritesRoute: typeof DashboardFavoritesRoute
+  DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardImageRoute: typeof DashboardImageRoute
   DashboardProductRoute: typeof DashboardProductRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
@@ -239,6 +279,8 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdcopyRoute: DashboardAdcopyRoute,
   DashboardCaptionRoute: DashboardCaptionRoute,
+  DashboardFavoritesRoute: DashboardFavoritesRoute,
+  DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardImageRoute: DashboardImageRoute,
   DashboardProductRoute: DashboardProductRoute,
   DashboardProfileRoute: DashboardProfileRoute,
