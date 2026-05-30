@@ -21,6 +21,7 @@ import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history
 import { Route as DashboardFavoritesRouteImport } from './routes/dashboard.favorites'
 import { Route as DashboardCaptionRouteImport } from './routes/dashboard.caption'
 import { Route as DashboardAdcopyRouteImport } from './routes/dashboard.adcopy'
+import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
@@ -82,12 +83,18 @@ const DashboardAdcopyRoute = DashboardAdcopyRouteImport.update({
   path: '/adcopy',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ApiGenerateImageRoute = ApiGenerateImageRouteImport.update({
+  id: '/api/generate-image',
+  path: '/api/generate-image',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
+  '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/pricing'
+    | '/api/generate-image'
     | '/dashboard/adcopy'
     | '/dashboard/caption'
     | '/dashboard/favorites'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/pricing'
+    | '/api/generate-image'
     | '/dashboard/adcopy'
     | '/dashboard/caption'
     | '/dashboard/favorites'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/login'
     | '/pricing'
+    | '/api/generate-image'
     | '/dashboard/adcopy'
     | '/dashboard/caption'
     | '/dashboard/favorites'
@@ -174,6 +186,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
+  ApiGenerateImageRoute: typeof ApiGenerateImageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -262,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAdcopyRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/api/generate-image': {
+      id: '/api/generate-image'
+      path: '/api/generate-image'
+      fullPath: '/api/generate-image'
+      preLoaderRoute: typeof ApiGenerateImageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -296,6 +316,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
+  ApiGenerateImageRoute: ApiGenerateImageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
