@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { generateProductDescriptionFn } from "@/lib/ai.functions";
+import { FavoriteButton } from "@/components/favorite-button";
 
 export const Route = createFileRoute("/dashboard/product")({
   component: ProductTool,
@@ -95,9 +96,12 @@ function ProductTool() {
             <p className="whitespace-pre-wrap text-sm leading-relaxed">
               {mutation.data.description}
             </p>
-            <Button variant="ghost" size="icon" onClick={() => copy(mutation.data.description)}>
-              <Copy className="h-4 w-4" />
-            </Button>
+            <div className="flex shrink-0 gap-1">
+              <FavoriteButton generationId={mutation.data.generationId} />
+              <Button variant="ghost" size="icon" onClick={() => copy(mutation.data.description)}>
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </Card>
       )}
