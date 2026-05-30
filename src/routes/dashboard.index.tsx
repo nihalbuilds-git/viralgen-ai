@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   MessageSquare,
   Megaphone,
@@ -13,16 +15,15 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { listGenerations } from "@/lib/generations.functions";
+import { getMyProfile } from "@/lib/profile.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
 });
 
-const stats = [
-  { label: "Generations this month", value: "1,284", icon: Zap, change: "+12%" },
-  { label: "Words created", value: "84,520", icon: TrendingUp, change: "+34%" },
-  { label: "Avg. time saved", value: "26 hrs", icon: Clock, change: "+8%" },
-];
+const MONTHLY_QUOTA = 5000;
 
 const tools = [
   { title: "Caption Generator", desc: "Scroll-stopping social captions", url: "/dashboard/caption", icon: MessageSquare, color: "from-indigo-500 to-purple-500" },
@@ -31,17 +32,67 @@ const tools = [
   { title: "AI Image Generator", desc: "Marketing visuals from text", url: "/dashboard/image", icon: ImageIcon, color: "from-purple-500 to-pink-500" },
 ];
 
-const recent = [
-  { type: "Caption", text: "✨ Sundays were made for slow coffee and slower scrolls…", time: "2h ago" },
-  { type: "Ad copy", text: "Tired of bloated dashboards? Meet Atlas — analytics that respect your time.", time: "5h ago" },
-  { type: "Product", text: "The Aero hoodie blends merino warmth with featherweight comfort…", time: "Yesterday" },
-];
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  return `${d}d ago`;
+}
+
+function previewOf(output: unknown): string {
+  if (!output || typeof output !== "object") return "";
+  const o = output as Record<string, unknown>;
+  if (Array.isArray(o.captions) && o.captions[0]) return String(o.captions[0]);
+  if (typeof o.headline === "string") return o.headline;
+  if (typeof o.description === "string") return o.description;
+  if (typeof o.imageUrl === "string") return "Generated image";
+  return JSON.stringify(output).slice(0, 140);
+}
 
 function DashboardHome() {
+  const { user } = useAuth();
+  const list = useServerFn(listGenerations);
+  const getProfile = useServerFn(getMyProfile);
+
+  const { data: generations } = useQuery({
+    queryKey: ["generations"],
+    queryFn: () => list({ data: { limit: 100 } }),
+  });
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: () => getProfile(),
+  });
+
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const thisMonth = (generations ?? []).filter(
+    (g) => new Date(g.created_at).getTime() >= monthStart,
+  );
+  const wordCount = (generations ?? []).reduce((acc, g) => {
+    const s = JSON.stringify(g.output ?? {});
+    return acc + s.split(/\s+/).filter(Boolean).length;
+  }, 0);
+  const hoursSaved = Math.round((generations?.length ?? 0) * 0.25);
+
+  const stats = [
+    { label: "Generations this month", value: thisMonth.length.toLocaleString(), icon: Zap },
+    { label: "Words created", value: wordCount.toLocaleString(), icon: TrendingUp },
+    { label: "Hours saved", value: `${hoursSaved} hrs`, icon: Clock },
+  ];
+
+  const recent = (generations ?? []).slice(0, 5);
+  const used = thisMonth.length;
+  const pct = Math.min(100, Math.round((used / MONTHLY_QUOTA) * 100));
+  const name = profile?.display_name || user?.email?.split("@")[0] || "there";
+
   return (
     <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
       <div>
-        <h1 className="font-display text-3xl font-bold">Welcome back, Jane 👋</h1>
+        <h1 className="font-display text-3xl font-bold">Welcome back, {name} 👋</h1>
         <p className="mt-1 text-muted-foreground">Let's create something that travels today.</p>
       </div>
 
@@ -53,7 +104,6 @@ function DashboardHome() {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
                 <s.icon className="h-4 w-4 text-primary-foreground" />
               </div>
-              <span className="text-xs font-medium text-primary">{s.change}</span>
             </div>
             <div className="mt-4 font-display text-3xl font-bold">{s.value}</div>
             <div className="text-sm text-muted-foreground">{s.label}</div>
@@ -66,13 +116,15 @@ function DashboardHome() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-display text-lg font-semibold">Monthly usage</h3>
-            <p className="text-sm text-muted-foreground">1,284 of 5,000 generations used</p>
+            <p className="text-sm text-muted-foreground">
+              {used.toLocaleString()} of {MONTHLY_QUOTA.toLocaleString()} generations used
+            </p>
           </div>
           <Button asChild variant="outline" size="sm">
             <Link to="/pricing">Upgrade</Link>
           </Button>
         </div>
-        <Progress value={26} className="mt-4 h-2" />
+        <Progress value={pct} className="mt-4 h-2" />
       </Card>
 
       {/* AI tools */}
@@ -102,17 +154,25 @@ function DashboardHome() {
           <h3 className="font-display text-lg font-semibold">Recent generations</h3>
           <Sparkles className="h-4 w-4 text-primary" />
         </div>
-        <ul className="divide-y divide-border/60">
-          {recent.map((r, i) => (
-            <li key={i} className="flex items-start justify-between gap-4 py-3">
-              <div className="min-w-0">
-                <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">{r.type}</span>
-                <p className="mt-2 line-clamp-1 text-sm">{r.text}</p>
-              </div>
-              <span className="shrink-0 text-xs text-muted-foreground">{r.time}</span>
-            </li>
-          ))}
-        </ul>
+        {recent.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            No generations yet — pick a tool above to get started.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border/60">
+            {recent.map((r) => (
+              <li key={r.id} className="flex items-start justify-between gap-4 py-3">
+                <div className="min-w-0">
+                  <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-medium capitalize text-accent-foreground">
+                    {r.type}
+                  </span>
+                  <p className="mt-2 line-clamp-1 text-sm">{previewOf(r.output)}</p>
+                </div>
+                <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
     </div>
   );

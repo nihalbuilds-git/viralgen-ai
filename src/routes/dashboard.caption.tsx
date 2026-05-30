@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { generateCaptionsFn } from "@/lib/ai.functions";
+import { FavoriteButton } from "@/components/favorite-button";
 
 export const Route = createFileRoute("/dashboard/caption")({
   component: CaptionTool,
@@ -135,9 +136,12 @@ function CaptionTool() {
               className="group flex items-start justify-between gap-4 border-border/60 bg-gradient-card p-5"
             >
               <p className="whitespace-pre-wrap text-sm leading-relaxed">{c}</p>
-              <Button variant="ghost" size="icon" onClick={() => copy(c)}>
-                <Copy className="h-4 w-4" />
-              </Button>
+              <div className="flex shrink-0 gap-1">
+                {i === 0 && <FavoriteButton generationId={mutation.data?.generationId} />}
+                <Button variant="ghost" size="icon" onClick={() => copy(c)}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
             </Card>
           ))}
         </div>

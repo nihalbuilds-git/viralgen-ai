@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { generateAdCopyFn } from "@/lib/ai.functions";
+import { FavoriteButton } from "@/components/favorite-button";
 
 export const Route = createFileRoute("/dashboard/adcopy")({
   component: AdCopyTool,
@@ -114,7 +115,10 @@ function AdCopyTool() {
 
       {mutation.data && (
         <div className="space-y-3">
-          <h2 className="font-display text-lg font-semibold">Results</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-lg font-semibold">Results</h2>
+            <FavoriteButton generationId={mutation.data.generationId} />
+          </div>
           <ResultBlock label="Headline" value={mutation.data.headline} onCopy={copy} />
           <ResultBlock label="Primary text" value={mutation.data.primaryText} onCopy={copy} />
           <ResultBlock label="Call to action" value={mutation.data.cta} onCopy={copy} />
