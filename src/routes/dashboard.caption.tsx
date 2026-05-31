@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { MessageSquare, Sparkles, Loader2, Copy } from "lucide-react";
+import { MessageSquare, Sparkles, Loader2 } from "lucide-react";
+import { CopyButton } from "@/components/copy-button";
+import { ExportButtons } from "@/components/export-buttons";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,10 +39,8 @@ function CaptionTool() {
     onSuccess: () => toast.success("Captions ready"),
   });
 
-  const copy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard");
-  };
+
+
 
   const handle = () => {
     if (!product.trim() || !audience.trim()) {
@@ -138,9 +138,8 @@ function CaptionTool() {
               <p className="whitespace-pre-wrap text-sm leading-relaxed">{c}</p>
               <div className="flex shrink-0 gap-1">
                 {i === 0 && <FavoriteButton generationId={mutation.data?.generationId} />}
-                <Button variant="ghost" size="icon" onClick={() => copy(c)}>
-                  <Copy className="h-4 w-4" />
-                </Button>
+                <CopyButton text={c} />
+                <ExportButtons filename={`caption-${i + 1}`} title={`Caption ${i + 1}`} text={c} />
               </div>
             </Card>
           ))}
