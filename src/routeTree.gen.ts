@@ -14,12 +14,15 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardProductRouteImport } from './routes/dashboard.product'
 import { Route as DashboardImageRouteImport } from './routes/dashboard.image'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardFavoritesRouteImport } from './routes/dashboard.favorites'
 import { Route as DashboardCaptionRouteImport } from './routes/dashboard.caption'
+import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as DashboardAdcopyRouteImport } from './routes/dashboard.adcopy'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 
@@ -46,6 +49,16 @@ const IndexRoute = IndexRouteImport.update({
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardTemplatesRoute = DashboardTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardProfileRoute = DashboardProfileRouteImport.update({
@@ -78,6 +91,11 @@ const DashboardCaptionRoute = DashboardCaptionRouteImport.update({
   path: '/caption',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAdcopyRoute = DashboardAdcopyRouteImport.update({
   id: '/adcopy',
   path: '/adcopy',
@@ -96,12 +114,15 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/image': typeof DashboardImageRoute
   '/dashboard/product': typeof DashboardProductRoute
   '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -110,12 +131,15 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/image': typeof DashboardImageRoute
   '/dashboard/product': typeof DashboardProductRoute
   '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -126,12 +150,15 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
+  '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/image': typeof DashboardImageRoute
   '/dashboard/product': typeof DashboardProductRoute
   '/dashboard/profile': typeof DashboardProfileRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/templates': typeof DashboardTemplatesRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -143,12 +170,15 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/api/generate-image'
     | '/dashboard/adcopy'
+    | '/dashboard/analytics'
     | '/dashboard/caption'
     | '/dashboard/favorites'
     | '/dashboard/history'
     | '/dashboard/image'
     | '/dashboard/product'
     | '/dashboard/profile'
+    | '/dashboard/settings'
+    | '/dashboard/templates'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -157,12 +187,15 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/api/generate-image'
     | '/dashboard/adcopy'
+    | '/dashboard/analytics'
     | '/dashboard/caption'
     | '/dashboard/favorites'
     | '/dashboard/history'
     | '/dashboard/image'
     | '/dashboard/product'
     | '/dashboard/profile'
+    | '/dashboard/settings'
+    | '/dashboard/templates'
     | '/dashboard'
   id:
     | '__root__'
@@ -172,12 +205,15 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/api/generate-image'
     | '/dashboard/adcopy'
+    | '/dashboard/analytics'
     | '/dashboard/caption'
     | '/dashboard/favorites'
     | '/dashboard/history'
     | '/dashboard/image'
     | '/dashboard/product'
     | '/dashboard/profile'
+    | '/dashboard/settings'
+    | '/dashboard/templates'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -226,6 +262,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/templates': {
+      id: '/dashboard/templates'
+      path: '/templates'
+      fullPath: '/dashboard/templates'
+      preLoaderRoute: typeof DashboardTemplatesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/profile': {
       id: '/dashboard/profile'
       path: '/profile'
@@ -268,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCaptionRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/analytics': {
+      id: '/dashboard/analytics'
+      path: '/analytics'
+      fullPath: '/dashboard/analytics'
+      preLoaderRoute: typeof DashboardAnalyticsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/adcopy': {
       id: '/dashboard/adcopy'
       path: '/adcopy'
@@ -287,23 +344,29 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardAdcopyRoute: typeof DashboardAdcopyRoute
+  DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardCaptionRoute: typeof DashboardCaptionRoute
   DashboardFavoritesRoute: typeof DashboardFavoritesRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardImageRoute: typeof DashboardImageRoute
   DashboardProductRoute: typeof DashboardProductRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardTemplatesRoute: typeof DashboardTemplatesRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdcopyRoute: DashboardAdcopyRoute,
+  DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardCaptionRoute: DashboardCaptionRoute,
   DashboardFavoritesRoute: DashboardFavoritesRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardImageRoute: DashboardImageRoute,
   DashboardProductRoute: DashboardProductRoute,
   DashboardProfileRoute: DashboardProfileRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardTemplatesRoute: DashboardTemplatesRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -321,3 +384,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

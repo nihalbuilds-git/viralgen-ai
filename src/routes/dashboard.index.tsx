@@ -1,29 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  MessageSquare,
-  Megaphone,
-  Package,
-  ImageIcon,
-  TrendingUp,
-  Zap,
-  Clock,
-  ArrowRight,
-  Sparkles,
+  MessageSquare, Megaphone, Package, ImageIcon, TrendingUp, Zap, Clock,
+  ArrowRight, Sparkles, FileText,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { listGenerations } from "@/lib/generations.functions";
 import { getMyProfile } from "@/lib/profile.functions";
 import { useAuth } from "@/hooks/use-auth";
+import { AnimatedCounter } from "@/components/animated-counter";
+import { Sparkline } from "@/components/sparkline";
+import { UsageMeter } from "@/components/usage-meter";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { EmptyState } from "@/components/empty-state";
+import { PLAN_BY_ID } from "@/lib/plans";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardHome,
 });
-
-const MONTHLY_QUOTA = 5000;
 
 const tools = [
   { title: "Caption Generator", desc: "Scroll-stopping social captions", url: "/dashboard/caption", icon: MessageSquare, color: "from-indigo-500 to-purple-500" },
@@ -39,8 +39,7 @@ function timeAgo(iso: string) {
   if (m < 60) return `${m}m ago`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  return `${d}d ago`;
+  return `${Math.floor(h / 24)}d ago`;
 }
 
 function previewOf(output: unknown): string {
@@ -53,78 +52,120 @@ function previewOf(output: unknown): string {
   return JSON.stringify(output).slice(0, 140);
 }
 
+function dailySeries(items: { created_at: string }[], days = 14): number[] {
+  const arr = new Array(days).fill(0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  for (const it of items) {
+    const d = new Date(it.created_at);
+    d.setHours(0, 0, 0, 0);
+    const diff = Math.floor((today.getTime() - d.getTime()) / 86400000);
+    if (diff >= 0 && diff < days) arr[days - 1 - diff]++;
+  }
+  return arr;
+}
+
 function DashboardHome() {
   const { user } = useAuth();
   const list = useServerFn(listGenerations);
   const getProfile = useServerFn(getMyProfile);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
-  const { data: generations } = useQuery({
+  const { data: generations, isLoading } = useQuery({
     queryKey: ["generations"],
     queryFn: () => list({ data: { limit: 100 } }),
   });
-  const { data: profile } = useQuery({
-    queryKey: ["profile"],
-    queryFn: () => getProfile(),
-  });
+  const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
 
+  const plan = PLAN_BY_ID.free; // placeholder — settings page lets user pick
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-  const thisMonth = (generations ?? []).filter(
-    (g) => new Date(g.created_at).getTime() >= monthStart,
+  const all = generations ?? [];
+  const thisMonth = all.filter((g) => new Date(g.created_at).getTime() >= monthStart);
+  const wordCount = all.reduce(
+    (acc, g) => acc + JSON.stringify(g.output ?? {}).split(/\s+/).filter(Boolean).length,
+    0,
   );
-  const wordCount = (generations ?? []).reduce((acc, g) => {
-    const s = JSON.stringify(g.output ?? {});
-    return acc + s.split(/\s+/).filter(Boolean).length;
-  }, 0);
-  const hoursSaved = Math.round((generations?.length ?? 0) * 0.25);
+  const hoursSaved = Math.round(all.length * 0.25);
+  const avgViral = 78; // mock score
+  const series = dailySeries(all);
 
   const stats = [
-    { label: "Generations this month", value: thisMonth.length.toLocaleString(), icon: Zap },
-    { label: "Words created", value: wordCount.toLocaleString(), icon: TrendingUp },
-    { label: "Hours saved", value: `${hoursSaved} hrs`, icon: Clock },
+    { label: "Total Generated", value: all.length, icon: Zap, suffix: "" },
+    { label: "Avg Viral Score", value: avgViral, icon: TrendingUp, suffix: "/100" },
+    { label: "Words Written", value: wordCount, icon: FileText, suffix: "" },
+    { label: "Hours Saved", value: hoursSaved, icon: Clock, suffix: "h" },
   ];
 
-  const recent = (generations ?? []).slice(0, 5);
-  const used = thisMonth.length;
-  const pct = Math.min(100, Math.round((used / MONTHLY_QUOTA) * 100));
+  const recent = all.slice(0, 8);
   const name = profile?.display_name || user?.email?.split("@")[0] || "there";
+  const overLimit = plan.monthlyGenerations > 0 && thisMonth.length >= plan.monthlyGenerations;
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
-      <div>
-        <h1 className="font-display text-3xl font-bold">Welcome back, {name} 👋</h1>
-        <p className="mt-1 text-muted-foreground">Let's create something that travels today.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl font-bold">Welcome back, {name} 👋</h1>
+          <p className="mt-1 text-muted-foreground">Let's create something that travels today.</p>
+        </div>
+        <Badge variant="secondary" className="gap-1.5">
+          <Sparkles className="h-3 w-3" /> {plan.name} plan
+        </Badge>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {stats.map((s) => (
-          <Card key={s.label} className="border-border/60 bg-gradient-card p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
-                <s.icon className="h-4 w-4 text-primary-foreground" />
+      {/* Analytics with sparklines */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+          >
+            <Card className="border-border/60 bg-gradient-card p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
+                  <s.icon className="h-4 w-4 text-primary-foreground" />
+                </div>
               </div>
-            </div>
-            <div className="mt-4 font-display text-3xl font-bold">{s.value}</div>
-            <div className="text-sm text-muted-foreground">{s.label}</div>
-          </Card>
+              <div className="mt-3 font-display text-2xl font-bold">
+                <AnimatedCounter value={s.value} />
+                <span className="text-base font-normal text-muted-foreground">{s.suffix}</span>
+              </div>
+              <div className="text-xs text-muted-foreground">{s.label}</div>
+              <div className="-mx-1 mt-2">
+                <Sparkline data={series} />
+              </div>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
       {/* Usage */}
       <Card className="border-border/60 bg-gradient-card p-6">
-        <div className="flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between">
           <div>
             <h3 className="font-display text-lg font-semibold">Monthly usage</h3>
-            <p className="text-sm text-muted-foreground">
-              {used.toLocaleString()} of {MONTHLY_QUOTA.toLocaleString()} generations used
-            </p>
+            <p className="text-sm text-muted-foreground">Resets on the 1st of each month.</p>
           </div>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/pricing">Upgrade</Link>
+          <Button variant="outline" size="sm" onClick={() => setUpgradeOpen(true)}>
+            Upgrade
           </Button>
         </div>
-        <Progress value={pct} className="mt-4 h-2" />
+        <div className="space-y-4">
+          <UsageMeter
+            label="Text generations"
+            used={thisMonth.filter((g) => g.type !== "image").length}
+            limit={plan.monthlyGenerations}
+            hint="Captions, ad copy, and product descriptions"
+          />
+          <UsageMeter
+            label="AI images"
+            used={thisMonth.filter((g) => g.type === "image").length}
+            limit={plan.monthlyImages}
+            hint="High-resolution marketing visuals"
+          />
+        </div>
       </Card>
 
       {/* AI tools */}
@@ -148,16 +189,24 @@ function DashboardHome() {
         </div>
       </div>
 
-      {/* Recent generations */}
+      {/* Recent activity */}
       <Card className="border-border/60 bg-gradient-card p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-lg font-semibold">Recent generations</h3>
+          <h3 className="font-display text-lg font-semibold">Recent activity</h3>
           <Sparkles className="h-4 w-4 text-primary" />
         </div>
-        {recent.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            No generations yet — pick a tool above to get started.
-          </p>
+        {isLoading ? (
+          <div className="space-y-3">
+            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+          </div>
+        ) : recent.length === 0 ? (
+          <EmptyState
+            icon={Sparkles}
+            title="No activity yet"
+            description="Generate your first piece of content to see your activity stream here."
+            ctaLabel="Try Caption Generator"
+            ctaTo="/dashboard/caption"
+          />
         ) : (
           <ul className="divide-y divide-border/60">
             {recent.map((r) => (
@@ -174,6 +223,12 @@ function DashboardHome() {
           </ul>
         )}
       </Card>
+
+      <UpgradeModal
+        open={upgradeOpen || overLimit}
+        onOpenChange={setUpgradeOpen}
+        reason={overLimit ? "You've reached your Free plan monthly limit." : undefined}
+      />
     </div>
   );
 }
