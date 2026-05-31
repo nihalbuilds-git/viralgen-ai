@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { MobileTabBar } from "@/components/mobile-tabbar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Bell, LogOut, Loader2 } from "lucide-react";
@@ -47,12 +48,14 @@ function DashboardLayout() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
-        <AppSidebar />
+        <div className="hidden md:block">
+          <AppSidebar />
+        </div>
         <div className="flex flex-1 flex-col">
           <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl">
             <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              <span className="text-sm text-muted-foreground">Workspace</span>
+              <div className="hidden md:block"><SidebarTrigger /></div>
+              <span className="font-display text-sm font-semibold md:text-muted-foreground md:font-normal">Workspace</span>
             </div>
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="icon">
@@ -67,11 +70,12 @@ function DashboardLayout() {
               </div>
             </div>
           </header>
-          <main className="flex-1 p-6 md:p-8">
+          <main className="flex-1 p-4 pb-24 md:p-8 md:pb-8">
             <Outlet />
           </main>
         </div>
       </div>
+      <MobileTabBar />
     </SidebarProvider>
   );
 }

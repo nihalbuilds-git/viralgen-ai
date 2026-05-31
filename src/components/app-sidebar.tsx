@@ -1,34 +1,19 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
-  MessageSquare,
-  Megaphone,
-  Package,
-  ImageIcon,
-  User,
-  Sparkles,
-  CreditCard,
-  History,
-  Star,
+  LayoutDashboard, MessageSquare, Megaphone, Package, ImageIcon,
+  User, Sparkles, CreditCard, History, Star, BarChart3, Settings, LayoutTemplate,
 } from "lucide-react";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
+  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
+  { title: "Templates", url: "/dashboard/templates", icon: LayoutTemplate },
   { title: "History", url: "/dashboard/history", icon: History },
   { title: "Favorites", url: "/dashboard/favorites", icon: Star },
-  { title: "Profile", url: "/dashboard/profile", icon: User },
 ];
 
 const aiTools = [
@@ -38,7 +23,11 @@ const aiTools = [
   { title: "Image Generator", url: "/dashboard/image", icon: ImageIcon },
 ];
 
-const account = [{ title: "Pricing", url: "/pricing", icon: CreditCard }];
+const account = [
+  { title: "Settings", url: "/dashboard/settings", icon: Settings },
+  { title: "Profile", url: "/dashboard/profile", icon: User },
+  { title: "Pricing", url: "/pricing", icon: CreditCard },
+];
 
 export function AppSidebar() {
   const { state } = useSidebar();
