@@ -173,8 +173,8 @@ function SettingsPage() {
           <Card className="border-border/60 bg-gradient-card p-6 space-y-4">
             <div>
               <Label>Theme</Label>
-              <div className="mt-3 grid grid-cols-3 gap-3">
-                {(["light", "dark", "system"] as const).map((t) => (
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                {(["light", "dark"] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => { setTheme(t); toast.success(`Theme: ${t}`); }}
