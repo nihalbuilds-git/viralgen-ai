@@ -3,6 +3,7 @@ import {
   LayoutDashboard, MessageSquare, Megaphone, Package, ImageIcon,
   User, Sparkles, CreditCard, History, Star, BarChart3, Settings, LayoutTemplate,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
@@ -37,73 +38,71 @@ export function AppSidebar() {
   const isActive = (url: string) =>
     url === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(url);
 
+  const renderGroup = (label: string, items: { title: string; url: string; icon: any }[]) => (
+    <SidebarGroup>
+      <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+        {label}
+      </SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu className="gap-0.5">
+          {items.map((item) => {
+            const active = isActive(item.url);
+            return (
+              <SidebarMenuItem key={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={active}
+                  className={`group relative h-9 rounded-lg transition-all ${
+                    active
+                      ? "bg-gradient-to-r from-primary/15 via-primary/5 to-transparent font-medium text-foreground"
+                      : "hover:bg-sidebar-accent/60"
+                  }`}
+                >
+                  <Link to={item.url} className="relative">
+                    {active && (
+                      <motion.span
+                        layoutId="sidebar-active-bar"
+                        className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-gradient-primary shadow-glow"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <item.icon
+                      className={`h-4 w-4 transition-colors ${
+                        active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                      }`}
+                    />
+                    <span className="text-sm">{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
-        <Link to="/" className="flex items-center gap-2 px-2 py-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary shadow-glow">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border/60">
+      <SidebarHeader className="border-b border-sidebar-border/60">
+        <Link to="/" className="group flex items-center gap-2.5 px-2 py-3">
+          <motion.div
+            whileHover={{ rotate: 12, scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary shadow-glow"
+          >
             <Sparkles className="h-4 w-4 text-primary-foreground" />
-          </div>
+          </motion.div>
           {!collapsed && (
             <span className="font-display text-lg font-bold tracking-tight">ViralGen</span>
           )}
         </Link>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainItems.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>AI Tools</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {aiTools.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Account</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {account.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="px-1">
+        {renderGroup("Workspace", mainItems)}
+        {renderGroup("AI Tools", aiTools)}
+        {renderGroup("Account", account)}
       </SidebarContent>
     </Sidebar>
   );
