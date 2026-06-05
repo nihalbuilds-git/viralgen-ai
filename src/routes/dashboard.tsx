@@ -52,20 +52,20 @@ function DashboardLayout() {
           <AppSidebar />
         </div>
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl">
+          <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/40 bg-background/60 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/40">
             <div className="flex items-center gap-2">
               <div className="hidden md:block"><SidebarTrigger /></div>
-              <span className="font-display text-sm font-semibold md:text-muted-foreground md:font-normal">Workspace</span>
+              <span className="font-display text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Workspace</span>
             </div>
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="hover:bg-accent/60">
                 <Bell className="h-4 w-4" />
               </Button>
               <ThemeToggle />
-              <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sign out">
+              <Button variant="ghost" size="icon" onClick={handleSignOut} title="Sign out" className="hover:bg-accent/60">
                 <LogOut className="h-4 w-4" />
               </Button>
-              <div className="ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-primary text-xs font-semibold text-primary-foreground shadow-glow">
+              <div className="ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-primary text-xs font-semibold text-primary-foreground shadow-glow ring-2 ring-background">
                 {initials}
               </div>
             </div>
