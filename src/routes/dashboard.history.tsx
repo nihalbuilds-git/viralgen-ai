@@ -211,11 +211,7 @@ function HistoryPage() {
                           title={g.title}
                           text={text}
                         />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setPendingDelete(g.id)}
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => setPendingDelete(g.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
