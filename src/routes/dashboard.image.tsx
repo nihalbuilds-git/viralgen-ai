@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageIcon, Sparkles, Loader2, Download, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -18,6 +19,8 @@ import { toast } from "sonner";
 import { streamImage } from "@/lib/stream-image";
 import { cn } from "@/lib/utils";
 import { ToolHeader } from "@/components/tool-header";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/image")({
   component: ImageTool,
@@ -47,6 +50,8 @@ function ImageTool() {
   const [count, setCount] = useState(2);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const qc = useQueryClient();
 
   const loading = slots.some((s) => s.loading);
 
@@ -79,7 +84,9 @@ function ImageTool() {
             });
           },
         ).catch((err) => {
-          toast.error(err.message ?? "Generation failed");
+          const limitMessage = getUsageLimitMessage(err);
+          if (limitMessage) setUpgradeReason(limitMessage);
+          else toast.error(err.message ?? "Generation failed");
           setSlots((prev) => {
             const next = [...prev];
             next[i] = { src: null, isFinal: false, loading: false };
@@ -88,6 +95,8 @@ function ImageTool() {
         }),
       ),
     );
+    qc.invalidateQueries({ queryKey: ["generations"] });
+    qc.invalidateQueries({ queryKey: ["usage"] });
   };
 
   const download = (src: string, idx: number) => {
@@ -283,6 +292,11 @@ function ImageTool() {
           </motion.div>
         )}
       </AnimatePresence>
+      <UpgradeModal
+        open={Boolean(upgradeReason)}
+        onOpenChange={(open) => !open && setUpgradeReason(null)}
+        reason={upgradeReason ?? undefined}
+      />
     </div>
   );
 }
