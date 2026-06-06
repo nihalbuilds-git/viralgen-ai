@@ -5,6 +5,29 @@ import { assertUsageAvailable, getUsageSummary } from "./usage.server";
 
 const TypeEnum = z.enum(["caption", "adcopy", "product", "image"]);
 
+async function withSignedImageUrls(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  rows: any[],
+) {
+  return Promise.all(
+    rows.map(async (row) => {
+      const output = row?.output as Record<string, unknown> | null;
+      if (row?.type !== "image" || typeof output?.imagePath !== "string") return row;
+      const { data } = await supabase.storage
+        .from("generated-images")
+        .createSignedUrl(output.imagePath, 60 * 30);
+      return {
+        ...row,
+        output: {
+          ...output,
+          imageUrl: data?.signedUrl ?? null,
+        },
+      };
+    }),
+  );
+}
+
 const SaveInput = z.object({
   type: TypeEnum,
   title: z.string().min(1).max(200),
@@ -52,7 +75,7 @@ export const listGenerations = createServerFn({ method: "POST" })
     if (data.type) q = q.eq("type", data.type);
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return rows ?? [];
+    return withSignedImageUrls(supabase, rows ?? []);
   });
 
 const IdInput = z.object({ id: z.string().uuid() });
@@ -120,7 +143,12 @@ export const listFavorites = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    const rows = data ?? [];
+    const generations = await withSignedImageUrls(
+      supabase,
+      rows.map((row) => row.generation).filter(Boolean),
+    );
+    return rows.map((row, index) => ({ ...row, generation: generations[index] ?? row.generation }));
   });
 
 export const getMyUsage = createServerFn({ method: "GET" })
