@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { listGenerations } from "@/lib/generations.functions";
+import { getMyUsage, listGenerations } from "@/lib/generations.functions";
 import { getMyProfile } from "@/lib/profile.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { AnimatedCounter } from "@/components/animated-counter";
@@ -69,6 +69,7 @@ function DashboardHome() {
   const { user } = useAuth();
   const list = useServerFn(listGenerations);
   const getProfile = useServerFn(getMyProfile);
+  const getUsage = useServerFn(getMyUsage);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const { data: generations, isLoading } = useQuery({
@@ -76,12 +77,10 @@ function DashboardHome() {
     queryFn: () => list({ data: { limit: 100 } }),
   });
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
+  const { data: usage } = useQuery({ queryKey: ["usage"], queryFn: () => getUsage() });
 
-  const plan = PLAN_BY_ID.free; // placeholder — settings page lets user pick
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const plan = usage?.plan ?? PLAN_BY_ID.free;
   const all = generations ?? [];
-  const thisMonth = all.filter((g) => new Date(g.created_at).getTime() >= monthStart);
   const wordCount = all.reduce(
     (acc, g) => acc + JSON.stringify(g.output ?? {}).split(/\s+/).filter(Boolean).length,
     0,
@@ -99,7 +98,11 @@ function DashboardHome() {
 
   const recent = all.slice(0, 8);
   const name = profile?.display_name || user?.email?.split("@")[0] || "there";
-  const overLimit = plan.monthlyGenerations > 0 && thisMonth.length >= plan.monthlyGenerations;
+  const overLimit = Boolean(
+    usage &&
+      ((plan.monthlyGenerations > 0 && usage.textUsed >= plan.monthlyGenerations) ||
+        (plan.monthlyImages > 0 && usage.imageUsed >= plan.monthlyImages)),
+  );
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
@@ -155,13 +158,13 @@ function DashboardHome() {
         <div className="space-y-4">
           <UsageMeter
             label="Text generations"
-            used={thisMonth.filter((g) => g.type !== "image").length}
+            used={usage?.textUsed ?? 0}
             limit={plan.monthlyGenerations}
             hint="Captions, ad copy, and product descriptions"
           />
           <UsageMeter
             label="AI images"
-            used={thisMonth.filter((g) => g.type === "image").length}
+            used={usage?.imageUsed ?? 0}
             limit={plan.monthlyImages}
             hint="High-resolution marketing visuals"
           />
