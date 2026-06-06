@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BarChart3, TrendingUp, FileText, Zap, Clock } from "lucide-react";
@@ -12,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
 import { AnimatedCounter } from "@/components/animated-counter";
-import { listGenerations } from "@/lib/generations.functions";
+import { getAnalytics } from "@/lib/generations.functions";
 
 export const Route = createFileRoute("/dashboard/analytics")({
   component: AnalyticsPage,
@@ -26,65 +25,21 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 function AnalyticsPage() {
-  const list = useServerFn(listGenerations);
+  const analyticsFn = useServerFn(getAnalytics);
   const { data, isLoading } = useQuery({
-    queryKey: ["generations"],
-    queryFn: () => list({ data: { limit: 100 } }),
+    queryKey: ["analytics"],
+    queryFn: () => analyticsFn(),
   });
 
-  const all = data ?? [];
-  const totals = useMemo(() => {
-    const byType: Record<string, number> = {};
-    for (const g of all) byType[g.type] = (byType[g.type] ?? 0) + 1;
-    return Object.entries(byType).map(([name, value]) => ({ name, value }));
-  }, [all]);
-
-  const daily = useMemo(() => {
-    const days = 14;
-    const out: { day: string; generations: number; words: number }[] = [];
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(today); d.setDate(today.getDate() - i);
-      out.push({
-        day: d.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-        generations: 0, words: 0,
-      });
-    }
-    for (const g of all) {
-      const d = new Date(g.created_at); d.setHours(0, 0, 0, 0);
-      const diff = Math.floor((today.getTime() - d.getTime()) / 86400000);
-      if (diff >= 0 && diff < days) {
-        const idx = days - 1 - diff;
-        out[idx].generations++;
-        out[idx].words += JSON.stringify(g.output ?? {}).split(/\s+/).filter(Boolean).length;
-      }
-    }
-    return out;
-  }, [all]);
-
-  const radar = useMemo(
-    () => [
-      { metric: "Hook strength", score: 78 },
-      { metric: "Clarity", score: 84 },
-      { metric: "Emotion", score: 71 },
-      { metric: "CTA", score: 66 },
-      { metric: "Brand voice", score: 80 },
-      { metric: "Shareability", score: 88 },
-    ],
-    [],
-  );
-
-  const totalWords = all.reduce(
-    (a, g) => a + JSON.stringify(g.output ?? {}).split(/\s+/).filter(Boolean).length, 0,
-  );
-  const avgViral = 78;
-  const hoursSaved = Math.round(all.length * 0.25);
+  const totals = data?.totals ?? [];
+  const daily = data?.daily ?? [];
+  const radar = data?.quality ?? [];
 
   const stats = [
-    { label: "Total Generated", value: all.length, icon: Zap, suffix: "" },
-    { label: "Avg Viral Score", value: avgViral, icon: TrendingUp, suffix: "/100" },
-    { label: "Words Written", value: totalWords, icon: FileText, suffix: "" },
-    { label: "Hours Saved", value: hoursSaved, icon: Clock, suffix: "h" },
+    { label: "Total Generated", value: data?.totalGenerations ?? 0, icon: Zap, suffix: "" },
+    { label: "Avg Viral Score", value: data?.avgViral ?? 0, icon: TrendingUp, suffix: "/100" },
+    { label: "Words Written", value: data?.totalWords ?? 0, icon: FileText, suffix: "" },
+    { label: "Hours Saved", value: data?.hoursSaved ?? 0, icon: Clock, suffix: "h" },
   ];
 
   return (
@@ -103,7 +58,7 @@ function AnalyticsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
         </div>
-      ) : all.length === 0 ? (
+      ) : !data || data.totalGenerations === 0 ? (
         <EmptyState
           icon={BarChart3}
           title="No data to chart yet"
@@ -169,7 +124,7 @@ function AnalyticsPage() {
             <Card className="border-border/60 bg-gradient-card p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display font-semibold">Content mix</h3>
-                <Badge variant="secondary">{all.length} total</Badge>
+                <Badge variant="secondary">{data.totalGenerations} total</Badge>
               </div>
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
