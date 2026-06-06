@@ -17,10 +17,14 @@ export const Route = createFileRoute("/api/generate-image")({
         const supabaseUrl = process.env.SUPABASE_URL;
         const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
         if (!key) return new Response("Missing LOVABLE_API_KEY", { status: 500 });
-        if (!supabaseUrl || !publishableKey) return new Response("Backend is not configured", { status: 500 });
+        if (!supabaseUrl || !publishableKey) {
+          return new Response("Backend is not configured", { status: 500 });
+        }
 
         const authHeader = request.headers.get("authorization");
-        if (!authHeader?.startsWith("Bearer ")) return new Response("Please sign in to generate images", { status: 401 });
+        if (!authHeader?.startsWith("Bearer ")) {
+          return new Response("Please sign in to generate images", { status: 401 });
+        }
 
         const token = authHeader.replace("Bearer ", "");
         const supabase = createClient<Database>(supabaseUrl, publishableKey, {
@@ -30,7 +34,9 @@ export const Route = createFileRoute("/api/generate-image")({
 
         const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
         const userId = claimsData?.claims?.sub;
-        if (claimsError || !userId) return new Response("Please sign in to generate images", { status: 401 });
+        if (claimsError || !userId) {
+          return new Response("Please sign in to generate images", { status: 401 });
+        }
 
         const parsed = ImageRequest.safeParse(await request.json());
         if (!parsed.success) return new Response("Prompt required", { status: 400 });
@@ -38,7 +44,9 @@ export const Route = createFileRoute("/api/generate-image")({
         try {
           await assertUsageAvailable(supabase, userId, "image");
         } catch (error) {
-          return new Response(error instanceof Error ? error.message : "Usage limit reached", { status: 402 });
+          return new Response(error instanceof Error ? error.message : "Usage limit reached", {
+            status: 402,
+          });
         }
 
         const { data: profile } = await supabase
@@ -49,25 +57,22 @@ export const Route = createFileRoute("/api/generate-image")({
         const brandVoice = profile?.brand_voice ? ` Brand voice: ${profile.brand_voice}` : "";
         const prompt = `${parsed.data.prompt}${brandVoice}`;
 
-        const upstream = await fetch(
-          "https://ai.gateway.lovable.dev/v1/images/generations",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${key}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              model: "openai/gpt-image-2",
-              prompt,
-              size: parsed.data.size,
-              quality: "low",
-              stream: true,
-              partial_images: 1,
-            }),
-            signal: request.signal,
+        const upstream = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${key}`,
+            "Content-Type": "application/json",
           },
-        );
+          body: JSON.stringify({
+            model: "openai/gpt-image-2",
+            prompt,
+            size: parsed.data.size,
+            quality: "low",
+            stream: true,
+            partial_images: 1,
+          }),
+          signal: request.signal,
+        });
 
         if (!upstream.ok || !upstream.body) {
           return new Response(await upstream.text(), { status: upstream.status });
@@ -82,7 +87,9 @@ export const Route = createFileRoute("/api/generate-image")({
               buffer += chunk;
               const events = buffer.split("\n\n");
               buffer = events.pop() ?? "";
-              const completed = events.find((event) => event.includes("event: image_generation.completed"));
+              const completed = events.find((event) =>
+                event.includes("event: image_generation.completed"),
+              );
               if (!completed || persisted) return;
               try {
                 const dataLine = completed.split("\n").find((line) => line.startsWith("data: "));
