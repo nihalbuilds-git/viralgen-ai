@@ -80,11 +80,21 @@ function AdCopyTool() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="product">Product / service</Label>
-                <Input id="product" value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. AI scheduling assistant" />
+                <Input
+                  id="product"
+                  value={product}
+                  onChange={(e) => setProduct(e.target.value)}
+                  placeholder="e.g. AI scheduling assistant"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="audience">Target audience</Label>
-                <Input id="audience" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. Busy startup founders" />
+                <Input
+                  id="audience"
+                  value={audience}
+                  onChange={(e) => setAudience(e.target.value)}
+                  placeholder="e.g. Busy startup founders"
+                />
               </div>
             </div>
             <div className="space-y-2">
@@ -100,7 +110,9 @@ function AdCopyTool() {
             <div className="space-y-2">
               <Label>Tone</Label>
               <Select value={tone} onValueChange={setTone}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="persuasive">Persuasive</SelectItem>
                   <SelectItem value="bold">Bold</SelectItem>
