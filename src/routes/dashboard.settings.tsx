@@ -179,14 +179,18 @@ function SettingsPage() {
                   {p.featured && <Badge className="bg-gradient-primary">Popular</Badge>}
                 </div>
                 <div className="mt-2 font-display text-2xl font-bold">
-                  {p.price}<span className="text-sm font-normal text-muted-foreground">/mo</span>
+                  {p.price}
+                  <span className="text-sm font-normal text-muted-foreground">/mo</span>
                 </div>
                 <ul className="mt-3 space-y-1.5 text-xs">
-                  {p.features.filter((f) => f.included).slice(0, 3).map((f) => (
-                    <li key={f.label} className="flex items-start gap-1.5">
-                      <Check className="mt-0.5 h-3 w-3 shrink-0 text-primary" /> {f.label}
-                    </li>
-                  ))}
+                  {p.features
+                    .filter((f) => f.included)
+                    .slice(0, 3)
+                    .map((f) => (
+                      <li key={f.label} className="flex items-start gap-1.5">
+                        <Check className="mt-0.5 h-3 w-3 shrink-0 text-primary" /> {f.label}
+                      </li>
+                    ))}
                 </ul>
                 <Button
                   asChild={plan !== p.id}
@@ -201,15 +205,33 @@ function SettingsPage() {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Want the full comparison? <Link to="/pricing" className="text-primary underline-offset-2 hover:underline">See pricing</Link>
+            Want the full comparison?{" "}
+            <Link to="/pricing" className="text-primary underline-offset-2 hover:underline">
+              See pricing
+            </Link>
           </p>
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-4">
           <Card className="border-border/60 bg-gradient-card p-6 space-y-5">
-            <Row title="Email notifications" desc="Account, billing, and security alerts." checked={notifEmail} onChange={setNotifEmail} />
-            <Row title="Product updates" desc="New features, tools, and templates." checked={notifProduct} onChange={setNotifProduct} />
-            <Row title="Weekly insights" desc="Your viral scores and trending themes — every Monday." checked={notifWeekly} onChange={setNotifWeekly} />
+            <Row
+              title="Email notifications"
+              desc="Account, billing, and security alerts."
+              checked={notifEmail}
+              onChange={setNotifEmail}
+            />
+            <Row
+              title="Product updates"
+              desc="New features, tools, and templates."
+              checked={notifProduct}
+              onChange={setNotifProduct}
+            />
+            <Row
+              title="Weekly insights"
+              desc="Your viral scores and trending themes — every Monday."
+              checked={notifWeekly}
+              onChange={setNotifWeekly}
+            />
           </Card>
         </TabsContent>
 
@@ -221,10 +243,15 @@ function SettingsPage() {
                 {(["light", "dark"] as const).map((t) => (
                   <button
                     key={t}
-                    onClick={() => { setTheme(t); toast.success(`Theme: ${t}`); }}
+                    onClick={() => {
+                      setTheme(t);
+                      toast.success(`Theme: ${t}`);
+                    }}
                     className={cn(
                       "rounded-xl border p-4 text-sm font-medium capitalize transition-colors",
-                      theme === t ? "border-primary bg-accent" : "border-border/60 hover:bg-accent/60",
+                      theme === t
+                        ? "border-primary bg-accent"
+                        : "border-border/60 hover:bg-accent/60",
                     )}
                   >
                     {t}
@@ -239,7 +266,17 @@ function SettingsPage() {
   );
 }
 
-function Row({ title, desc, checked, onChange }: { title: string; desc: string; checked: boolean; onChange: (v: boolean) => void }) {
+function Row({
+  title,
+  desc,
+  checked,
+  onChange,
+}: {
+  title: string;
+  desc: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
