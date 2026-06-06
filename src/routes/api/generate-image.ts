@@ -73,17 +73,25 @@ export const Route = createFileRoute("/api/generate-image")({
           return new Response(await upstream.text(), { status: upstream.status });
         }
 
+        let buffer = "";
+        let persisted = false;
         const stream = upstream.body.pipeThrough(new TextDecoderStream()).pipeThrough(
           new TransformStream<string, Uint8Array>({
             async transform(chunk, controller) {
               controller.enqueue(new TextEncoder().encode(chunk));
-              const match = chunk.match(/event: image_generation\.completed[\s\S]*?data: (\{[^\n]+\})/);
-              if (!match) return;
+              buffer += chunk;
+              const events = buffer.split("\n\n");
+              buffer = events.pop() ?? "";
+              const completed = events.find((event) => event.includes("event: image_generation.completed"));
+              if (!completed || persisted) return;
               try {
-                const payload = JSON.parse(match[1]) as { b64_json?: string };
+                const dataLine = completed.split("\n").find((line) => line.startsWith("data: "));
+                if (!dataLine) return;
+                const payload = JSON.parse(dataLine.replace("data: ", "")) as { b64_json?: string };
                 if (!payload.b64_json) return;
+                persisted = true;
                 const path = `${userId}/${crypto.randomUUID()}.png`;
-                const bytes = Uint8Array.from(atob(payload.b64_json), (char) => char.charCodeAt(0));
+                const bytes = Buffer.from(payload.b64_json, "base64");
                 const { error: uploadError } = await supabase.storage
                   .from("generated-images")
                   .upload(path, bytes, { contentType: "image/png", upsert: false });
