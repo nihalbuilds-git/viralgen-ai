@@ -136,7 +136,9 @@ function HistoryPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -149,7 +151,14 @@ function HistoryPage() {
           }
           ctaLabel={data && data.length > 0 ? "Clear filters" : "Try Caption Generator"}
           ctaTo={data && data.length > 0 ? undefined : "/dashboard/caption"}
-          onCta={data && data.length > 0 ? () => { setQ(""); setType("all"); } : undefined}
+          onCta={
+            data && data.length > 0
+              ? () => {
+                  setQ("");
+                  setType("all");
+                }
+              : undefined
+          }
         />
       ) : (
         <AnimatePresence mode="popLayout">
@@ -177,7 +186,9 @@ function HistoryPage() {
                           <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-medium capitalize text-accent-foreground">
                             {g.type}
                           </span>
-                          <Badge variant="outline" className="text-xs">Viral {score}</Badge>
+                          <Badge variant="outline" className="text-xs">
+                            Viral {score}
+                          </Badge>
                           <span className="text-xs text-muted-foreground">
                             {new Date(g.created_at).toLocaleString()}
                           </span>
@@ -195,7 +206,11 @@ function HistoryPage() {
                       <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
                         <FavoriteButton generationId={g.id} />
                         <CopyButton text={text} />
-                        <ExportButtons filename={`viralgen-${g.id.slice(0, 8)}`} title={g.title} text={text} />
+                        <ExportButtons
+                          filename={`viralgen-${g.id.slice(0, 8)}`}
+                          title={g.title}
+                          text={text}
+                        />
                         <Button
                           variant="ghost"
                           size="icon"
