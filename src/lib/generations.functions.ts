@@ -127,6 +127,22 @@ export const getMyUsage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => getUsageSummary(context.supabase, context.userId));
 
+const PlanInput = z.object({ planId: z.enum(["free", "pro", "enterprise"]) });
+
+export const updateMyPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => PlanInput.parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { data: row, error } = await supabase
+      .from("user_subscriptions")
+      .upsert({ user_id: userId, plan_id: data.planId }, { onConflict: "user_id" })
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
 export const getAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
