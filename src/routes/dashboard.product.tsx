@@ -41,6 +41,7 @@ function ProductTool() {
       toast.success("Description ready");
       qc.invalidateQueries({ queryKey: ["generations"] });
       qc.invalidateQueries({ queryKey: ["usage"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
     },
   });
 
