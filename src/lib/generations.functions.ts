@@ -8,6 +8,7 @@ const TypeEnum = z.enum(["caption", "adcopy", "product", "image"]);
 async function withSignedImageUrls(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rows: any[],
 ) {
   return Promise.all(
@@ -156,22 +157,6 @@ export const getMyUsage = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => getUsageSummary(context.supabase, context.userId));
 
-const PlanInput = z.object({ planId: z.enum(["free", "pro", "enterprise"]) });
-
-export const updateMyPlan = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => PlanInput.parse(d))
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const { data: row, error } = await supabase
-      .from("user_subscriptions")
-      .upsert({ user_id: userId, plan_id: data.planId }, { onConflict: "user_id" })
-      .select("*")
-      .single();
-    if (error) throw new Error(error.message);
-    return row;
-  });
-
 export const getAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -206,7 +191,9 @@ export const getAnalytics = createServerFn({ method: "GET" })
     let totalWords = 0;
     for (const row of rows) {
       byType[row.type] = (byType[row.type] ?? 0) + 1;
-      const words = JSON.stringify(row.output ?? {}).split(/\s+/).filter(Boolean).length;
+      const words = JSON.stringify(row.output ?? {})
+        .split(/\s+/)
+        .filter(Boolean).length;
       totalWords += words;
       const key = new Date(row.created_at).toISOString().slice(0, 10);
       const day = daily.find((item) => item.key === key);
@@ -219,7 +206,10 @@ export const getAnalytics = createServerFn({ method: "GET" })
     const totals = Object.entries(byType).map(([name, value]) => ({ name, value }));
     const totalGenerations = rows.length;
     const avgViral = totalGenerations
-      ? Math.round(rows.reduce((sum, row) => sum + 60 + ((row.title.length * 7) % 40), 0) / totalGenerations)
+      ? Math.round(
+          rows.reduce((sum, row) => sum + 60 + ((row.title.length * 7) % 40), 0) /
+            totalGenerations,
+        )
       : 0;
 
     return {
