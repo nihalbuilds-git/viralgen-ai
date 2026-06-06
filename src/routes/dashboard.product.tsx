@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Sparkles, Loader2 } from "lucide-react";
@@ -14,6 +14,8 @@ import { generateProductDescriptionFn } from "@/lib/ai.functions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CopyButton } from "@/components/copy-button";
 import { ToolHeader } from "@/components/tool-header";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/product")({
   component: ProductTool,
@@ -23,13 +25,23 @@ function ProductTool() {
   const [name, setName] = useState("");
   const [features, setFeatures] = useState("");
   const [audience, setAudience] = useState("");
+  const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const qc = useQueryClient();
 
   const fn = useServerFn(generateProductDescriptionFn);
   const mutation = useMutation({
     mutationFn: (vars: { name: string; features: string; audience: string }) =>
       fn({ data: vars }),
-    onError: (e: Error) => toast.error(e.message || "Generation failed"),
-    onSuccess: () => toast.success("Description ready"),
+    onError: (e: Error) => {
+      const limitMessage = getUsageLimitMessage(e);
+      if (limitMessage) setUpgradeReason(limitMessage);
+      else toast.error(e.message || "Generation failed");
+    },
+    onSuccess: () => {
+      toast.success("Description ready");
+      qc.invalidateQueries({ queryKey: ["generations"] });
+      qc.invalidateQueries({ queryKey: ["usage"] });
+    },
   });
 
   const handle = () => {
@@ -118,6 +130,11 @@ function ProductTool() {
           </motion.div>
         )}
       </AnimatePresence>
+      <UpgradeModal
+        open={Boolean(upgradeReason)}
+        onOpenChange={(open) => !open && setUpgradeReason(null)}
+        reason={upgradeReason ?? undefined}
+      />
     </div>
   );
 }
