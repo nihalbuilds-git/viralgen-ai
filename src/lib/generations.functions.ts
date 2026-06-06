@@ -207,8 +207,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
     const totalGenerations = rows.length;
     const avgViral = totalGenerations
       ? Math.round(
-          rows.reduce((sum, row) => sum + 60 + ((row.title.length * 7) % 40), 0) /
-            totalGenerations,
+          rows.reduce((sum, row) => sum + 60 + ((row.title.length * 7) % 40), 0) / totalGenerations,
         )
       : 0;
 
