@@ -49,6 +49,7 @@ function AdCopyTool() {
       toast.success("Ad copy ready");
       qc.invalidateQueries({ queryKey: ["generations"] });
       qc.invalidateQueries({ queryKey: ["usage"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
     },
   });
 
