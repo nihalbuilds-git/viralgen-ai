@@ -97,6 +97,7 @@ function ImageTool() {
     );
     qc.invalidateQueries({ queryKey: ["generations"] });
     qc.invalidateQueries({ queryKey: ["usage"] });
+    qc.invalidateQueries({ queryKey: ["analytics"] });
   };
 
   const download = (src: string, idx: number) => {
