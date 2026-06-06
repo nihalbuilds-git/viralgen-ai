@@ -2,7 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Save, Settings as SettingsIcon, User, CreditCard, Bell, Palette, Check } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Settings as SettingsIcon,
+  User,
+  CreditCard,
+  Bell,
+  Palette,
+  Check,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -50,13 +59,14 @@ function SettingsPage() {
   }, [data]);
 
   const mut = useMutation({
-    mutationFn: () => upd({
-      data: {
-        display_name: displayName || null,
-        avatar_url: avatarUrl || null,
-        brand_voice: brandVoice || null,
-      },
-    }),
+    mutationFn: () =>
+      upd({
+        data: {
+          display_name: displayName || null,
+          avatar_url: avatarUrl || null,
+          brand_voice: brandVoice || null,
+        },
+      }),
     onSuccess: () => {
       toast.success("Settings saved");
       qc.invalidateQueries({ queryKey: ["profile"] });
@@ -80,10 +90,22 @@ function SettingsPage() {
 
       <Tabs defaultValue="profile">
         <TabsList className="grid w-full grid-cols-4 sm:w-auto sm:inline-grid">
-          <TabsTrigger value="profile"><User className="mr-1.5 h-3.5 w-3.5" />Profile</TabsTrigger>
-          <TabsTrigger value="subscription"><CreditCard className="mr-1.5 h-3.5 w-3.5" />Plan</TabsTrigger>
-          <TabsTrigger value="notifications"><Bell className="mr-1.5 h-3.5 w-3.5" />Alerts</TabsTrigger>
-          <TabsTrigger value="appearance"><Palette className="mr-1.5 h-3.5 w-3.5" />Theme</TabsTrigger>
+          <TabsTrigger value="profile">
+            <User className="mr-1.5 h-3.5 w-3.5" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="subscription">
+            <CreditCard className="mr-1.5 h-3.5 w-3.5" />
+            Plan
+          </TabsTrigger>
+          <TabsTrigger value="notifications">
+            <Bell className="mr-1.5 h-3.5 w-3.5" />
+            Alerts
+          </TabsTrigger>
+          <TabsTrigger value="appearance">
+            <Palette className="mr-1.5 h-3.5 w-3.5" />
+            Theme
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="mt-4">
@@ -100,11 +122,20 @@ function SettingsPage() {
               <>
                 <div className="space-y-2">
                   <Label htmlFor="displayName">Display name</Label>
-                  <Input id="displayName" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                  <Input
+                    id="displayName"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="avatarUrl">Avatar URL</Label>
-                  <Input id="avatarUrl" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="https://…" />
+                  <Input
+                    id="avatarUrl"
+                    value={avatarUrl}
+                    onChange={(e) => setAvatarUrl(e.target.value)}
+                    placeholder="https://…"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="brandVoice">Brand voice</Label>
@@ -116,8 +147,16 @@ function SettingsPage() {
                     placeholder="Describe your brand's tone — used to personalize future generations."
                   />
                 </div>
-                <Button onClick={() => mut.mutate()} disabled={mut.isPending} className="bg-gradient-primary shadow-glow hover:opacity-90">
-                  {mut.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                <Button
+                  onClick={() => mut.mutate()}
+                  disabled={mut.isPending}
+                  className="bg-gradient-primary shadow-glow hover:opacity-90"
+                >
+                  {mut.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
                   Save changes
                 </Button>
               </>
