@@ -1,4 +1,4 @@
-import { USAGE_LIMIT_CODE } from "./usage.server";
+const USAGE_LIMIT_CODE = "USAGE_LIMIT_REACHED";
 
 export function getUsageLimitMessage(error: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
