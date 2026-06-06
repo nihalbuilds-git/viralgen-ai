@@ -30,8 +30,7 @@ function ProductTool() {
 
   const fn = useServerFn(generateProductDescriptionFn);
   const mutation = useMutation({
-    mutationFn: (vars: { name: string; features: string; audience: string }) =>
-      fn({ data: vars }),
+    mutationFn: (vars: { name: string; features: string; audience: string }) => fn({ data: vars }),
     onError: (e: Error) => {
       const limitMessage = getUsageLimitMessage(e);
       if (limitMessage) setUpgradeReason(limitMessage);
@@ -72,11 +71,21 @@ function ProductTool() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Product name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Aero Hoodie" />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Aero Hoodie"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="audience">Target audience</Label>
-                <Input id="audience" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. Outdoor enthusiasts and digital nomads" />
+                <Input
+                  id="audience"
+                  value={audience}
+                  onChange={(e) => setAudience(e.target.value)}
+                  placeholder="e.g. Outdoor enthusiasts and digital nomads"
+                />
               </div>
             </div>
             <div className="space-y-2">
