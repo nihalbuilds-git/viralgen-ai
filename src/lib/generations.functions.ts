@@ -143,12 +143,13 @@ export const listFavorites = createServerFn({ method: "GET" })
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    const rows = data ?? [];
-    const generations = await withSignedImageUrls(
-      supabase,
-      rows.map((row) => row.generation).filter(Boolean),
+    return Promise.all(
+      (data ?? []).map(async (row) => {
+        if (!row.generation) return row;
+        const [generation] = await withSignedImageUrls(supabase, [row.generation]);
+        return { ...row, generation };
+      }),
     );
-    return rows.map((row, index) => ({ ...row, generation: generations[index] ?? row.generation }));
   });
 
 export const getMyUsage = createServerFn({ method: "GET" })
