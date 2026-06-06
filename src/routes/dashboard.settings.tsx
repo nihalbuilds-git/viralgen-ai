@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "@/components/theme-provider";
 import { getMyProfile, updateMyProfile } from "@/lib/profile.functions";
-import { getMyUsage, updateMyPlan } from "@/lib/generations.functions";
+import { getMyUsage } from "@/lib/generations.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { PLANS } from "@/lib/plans";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,6 @@ function SettingsPage() {
   const get = useServerFn(getMyProfile);
   const upd = useServerFn(updateMyProfile);
   const getUsage = useServerFn(getMyUsage);
-  const updatePlan = useServerFn(updateMyPlan);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({ queryKey: ["profile"], queryFn: () => get() });
@@ -61,15 +60,6 @@ function SettingsPage() {
     onSuccess: () => {
       toast.success("Settings saved");
       qc.invalidateQueries({ queryKey: ["profile"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const planMut = useMutation({
-    mutationFn: (planId: "free" | "pro" | "enterprise") => updatePlan({ data: { planId } }),
-    onSuccess: (row) => {
-      toast.success(`Switched to ${PLANS.find((p) => p.id === row.plan_id)?.name ?? "selected"} plan`);
-      qc.invalidateQueries({ queryKey: ["usage"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -160,13 +150,13 @@ function SettingsPage() {
                   ))}
                 </ul>
                 <Button
+                  asChild={plan !== p.id}
                   size="sm"
                   variant={plan === p.id ? "default" : "outline"}
                   className={cn("mt-4 w-full", plan === p.id && "bg-gradient-primary shadow-glow")}
-                  onClick={() => planMut.mutate(p.id)}
-                  disabled={planMut.isPending}
+                  disabled={plan === p.id}
                 >
-                  {plan === p.id ? "Current plan" : planMut.isPending ? "Saving…" : "Select"}
+                  {plan === p.id ? <span>Current plan</span> : <Link to="/pricing">Upgrade</Link>}
                 </Button>
               </Card>
             ))}
