@@ -142,6 +142,10 @@ function HistoryPage() {
             {filtered.map((g) => {
               const text = outputToText(g.output);
               const score = 60 + ((g.title.length * 7) % 40);
+              const imageUrl =
+                g.output && typeof g.output === "object" && "imageUrl" in g.output
+                  ? String((g.output as Record<string, unknown>).imageUrl ?? "")
+                  : "";
               return (
                 <motion.div
                   key={g.id}
@@ -163,6 +167,14 @@ function HistoryPage() {
                             {new Date(g.created_at).toLocaleString()}
                           </span>
                         </div>
+                        {imageUrl && (
+                          <img
+                            src={imageUrl}
+                            alt={g.title}
+                            className="mt-3 aspect-video w-full max-w-sm rounded-xl object-cover"
+                            loading="lazy"
+                          />
+                        )}
                         <p className="mt-2 line-clamp-2 text-sm">{text || g.title}</p>
                       </div>
                       <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
