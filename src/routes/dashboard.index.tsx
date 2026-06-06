@@ -3,8 +3,16 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  MessageSquare, Megaphone, Package, ImageIcon, TrendingUp, Zap, Clock,
-  ArrowRight, Sparkles, FileText,
+  MessageSquare,
+  Megaphone,
+  Package,
+  ImageIcon,
+  TrendingUp,
+  Zap,
+  Clock,
+  ArrowRight,
+  Sparkles,
+  FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
@@ -26,10 +34,34 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 const tools = [
-  { title: "Caption Generator", desc: "Scroll-stopping social captions", url: "/dashboard/caption", icon: MessageSquare, color: "from-indigo-500 to-purple-500" },
-  { title: "Ad Copy", desc: "High-converting ad headlines & body", url: "/dashboard/adcopy", icon: Megaphone, color: "from-fuchsia-500 to-pink-500" },
-  { title: "Product Description", desc: "Persuasive product copy", url: "/dashboard/product", icon: Package, color: "from-blue-500 to-cyan-500" },
-  { title: "AI Image Generator", desc: "Marketing visuals from text", url: "/dashboard/image", icon: ImageIcon, color: "from-purple-500 to-pink-500" },
+  {
+    title: "Caption Generator",
+    desc: "Scroll-stopping social captions",
+    url: "/dashboard/caption",
+    icon: MessageSquare,
+    color: "from-indigo-500 to-purple-500",
+  },
+  {
+    title: "Ad Copy",
+    desc: "High-converting ad headlines & body",
+    url: "/dashboard/adcopy",
+    icon: Megaphone,
+    color: "from-fuchsia-500 to-pink-500",
+  },
+  {
+    title: "Product Description",
+    desc: "Persuasive product copy",
+    url: "/dashboard/product",
+    icon: Package,
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    title: "AI Image Generator",
+    desc: "Marketing visuals from text",
+    url: "/dashboard/image",
+    icon: ImageIcon,
+    color: "from-purple-500 to-pink-500",
+  },
 ];
 
 function timeAgo(iso: string) {
@@ -82,7 +114,11 @@ function DashboardHome() {
   const plan = usage?.plan ?? PLAN_BY_ID.free;
   const all = generations ?? [];
   const wordCount = all.reduce(
-    (acc, g) => acc + JSON.stringify(g.output ?? {}).split(/\s+/).filter(Boolean).length,
+    (acc, g) =>
+      acc +
+      JSON.stringify(g.output ?? {})
+        .split(/\s+/)
+        .filter(Boolean).length,
     0,
   );
   const hoursSaved = Math.round(all.length * 0.25);
@@ -178,7 +214,9 @@ function DashboardHome() {
           {tools.map((t) => (
             <Link key={t.url} to={t.url}>
               <Card className="group h-full border-border/60 bg-gradient-card p-5 transition-all hover:-translate-y-1 hover:shadow-glow">
-                <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${t.color} shadow-glow`}>
+                <div
+                  className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${t.color} shadow-glow`}
+                >
                   <t.icon className="h-5 w-5 text-white" />
                 </div>
                 <h3 className="font-display font-semibold">{t.title}</h3>
