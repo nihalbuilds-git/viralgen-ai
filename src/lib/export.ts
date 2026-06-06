@@ -49,8 +49,14 @@ export function outputToText(output: unknown): string {
   const o = output as Record<string, unknown>;
   if (Array.isArray(o.captions)) return (o.captions as string[]).join("\n\n");
   if (typeof o.description === "string") return o.description;
-  if (o.headline || o.body || o.cta) {
-    return [o.headline && `Headline: ${o.headline}`, o.body && `\n${o.body}`, o.cta && `\nCTA: ${o.cta}`]
+  if (typeof o.imageUrl === "string") return `Generated image: ${o.imageUrl}`;
+  if (typeof o.imagePath === "string") return `Generated image: ${o.imagePath}`;
+  if (o.headline || o.primaryText || o.body || o.cta) {
+    return [
+      o.headline && `Headline: ${o.headline}`,
+      (o.primaryText || o.body) && `\n${o.primaryText || o.body}`,
+      o.cta && `\nCTA: ${o.cta}`,
+    ]
       .filter(Boolean)
       .join("\n");
   }

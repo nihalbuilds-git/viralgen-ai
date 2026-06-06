@@ -11,19 +11,27 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CopyButton } from "@/components/copy-button";
 import { ExportButtons } from "@/components/export-buttons";
 import { EmptyState } from "@/components/empty-state";
-import {
-  listGenerations, deleteGeneration,
-} from "@/lib/generations.functions";
+import { listGenerations, deleteGeneration } from "@/lib/generations.functions";
 import { outputToText } from "@/lib/export";
 
 export const Route = createFileRoute("/dashboard/history")({
@@ -101,15 +109,22 @@ function HistoryPage() {
             />
           </div>
           <Select value={type} onValueChange={(v) => setType(v as typeof type)}>
-            <SelectTrigger><Filter className="mr-2 h-4 w-4" /><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {TYPES.map((t) => (
-                <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>
+                <SelectItem key={t} value={t} className="capitalize">
+                  {t}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={sort} onValueChange={(v) => setSort(v as typeof sort)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="newest">Newest first</SelectItem>
               <SelectItem value="oldest">Oldest first</SelectItem>
@@ -121,7 +136,9 @@ function HistoryPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
@@ -134,7 +151,14 @@ function HistoryPage() {
           }
           ctaLabel={data && data.length > 0 ? "Clear filters" : "Try Caption Generator"}
           ctaTo={data && data.length > 0 ? undefined : "/dashboard/caption"}
-          onCta={data && data.length > 0 ? () => { setQ(""); setType("all"); } : undefined}
+          onCta={
+            data && data.length > 0
+              ? () => {
+                  setQ("");
+                  setType("all");
+                }
+              : undefined
+          }
         />
       ) : (
         <AnimatePresence mode="popLayout">
@@ -142,6 +166,10 @@ function HistoryPage() {
             {filtered.map((g) => {
               const text = outputToText(g.output);
               const score = 60 + ((g.title.length * 7) % 40);
+              const imageUrl =
+                g.output && typeof g.output === "object" && "imageUrl" in g.output
+                  ? String((g.output as Record<string, unknown>).imageUrl ?? "")
+                  : "";
               return (
                 <motion.div
                   key={g.id}
@@ -158,22 +186,32 @@ function HistoryPage() {
                           <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-medium capitalize text-accent-foreground">
                             {g.type}
                           </span>
-                          <Badge variant="outline" className="text-xs">Viral {score}</Badge>
+                          <Badge variant="outline" className="text-xs">
+                            Viral {score}
+                          </Badge>
                           <span className="text-xs text-muted-foreground">
                             {new Date(g.created_at).toLocaleString()}
                           </span>
                         </div>
+                        {imageUrl && (
+                          <img
+                            src={imageUrl}
+                            alt={g.title}
+                            className="mt-3 aspect-video w-full max-w-sm rounded-xl object-cover"
+                            loading="lazy"
+                          />
+                        )}
                         <p className="mt-2 line-clamp-2 text-sm">{text || g.title}</p>
                       </div>
                       <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
                         <FavoriteButton generationId={g.id} />
                         <CopyButton text={text} />
-                        <ExportButtons filename={`viralgen-${g.id.slice(0, 8)}`} title={g.title} text={text} />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setPendingDelete(g.id)}
-                        >
+                        <ExportButtons
+                          filename={`viralgen-${g.id.slice(0, 8)}`}
+                          title={g.title}
+                          text={text}
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => setPendingDelete(g.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

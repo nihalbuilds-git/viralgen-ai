@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "framer-motion";
 import { Megaphone, Sparkles, Loader2 } from "lucide-react";
@@ -21,6 +21,8 @@ import { generateAdCopyFn } from "@/lib/ai.functions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CopyButton } from "@/components/copy-button";
 import { ToolHeader } from "@/components/tool-header";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/adcopy")({
   component: AdCopyTool,
@@ -31,13 +33,24 @@ function AdCopyTool() {
   const [audience, setAudience] = useState("");
   const [offer, setOffer] = useState("");
   const [tone, setTone] = useState("persuasive");
+  const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const qc = useQueryClient();
 
   const fn = useServerFn(generateAdCopyFn);
   const mutation = useMutation({
     mutationFn: (vars: { product: string; audience: string; offer: string; tone: string }) =>
       fn({ data: vars }),
-    onError: (e: Error) => toast.error(e.message || "Generation failed"),
-    onSuccess: () => toast.success("Ad copy ready"),
+    onError: (e: Error) => {
+      const limitMessage = getUsageLimitMessage(e);
+      if (limitMessage) setUpgradeReason(limitMessage);
+      else toast.error(e.message || "Generation failed");
+    },
+    onSuccess: () => {
+      toast.success("Ad copy ready");
+      qc.invalidateQueries({ queryKey: ["generations"] });
+      qc.invalidateQueries({ queryKey: ["usage"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
+    },
   });
 
   const handle = () => {
@@ -67,11 +80,21 @@ function AdCopyTool() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="product">Product / service</Label>
-                <Input id="product" value={product} onChange={(e) => setProduct(e.target.value)} placeholder="e.g. AI scheduling assistant" />
+                <Input
+                  id="product"
+                  value={product}
+                  onChange={(e) => setProduct(e.target.value)}
+                  placeholder="e.g. AI scheduling assistant"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="audience">Target audience</Label>
-                <Input id="audience" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. Busy startup founders" />
+                <Input
+                  id="audience"
+                  value={audience}
+                  onChange={(e) => setAudience(e.target.value)}
+                  placeholder="e.g. Busy startup founders"
+                />
               </div>
             </div>
             <div className="space-y-2">
@@ -87,7 +110,9 @@ function AdCopyTool() {
             <div className="space-y-2">
               <Label>Tone</Label>
               <Select value={tone} onValueChange={setTone}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="persuasive">Persuasive</SelectItem>
                   <SelectItem value="bold">Bold</SelectItem>
@@ -133,6 +158,11 @@ function AdCopyTool() {
           </motion.div>
         )}
       </AnimatePresence>
+      <UpgradeModal
+        open={Boolean(upgradeReason)}
+        onOpenChange={(open) => !open && setUpgradeReason(null)}
+        reason={upgradeReason ?? undefined}
+      />
     </div>
   );
 }

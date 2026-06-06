@@ -3,15 +3,23 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  MessageSquare, Megaphone, Package, ImageIcon, TrendingUp, Zap, Clock,
-  ArrowRight, Sparkles, FileText,
+  MessageSquare,
+  Megaphone,
+  Package,
+  ImageIcon,
+  TrendingUp,
+  Zap,
+  Clock,
+  ArrowRight,
+  Sparkles,
+  FileText,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { listGenerations } from "@/lib/generations.functions";
+import { getMyUsage, listGenerations } from "@/lib/generations.functions";
 import { getMyProfile } from "@/lib/profile.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { AnimatedCounter } from "@/components/animated-counter";
@@ -26,10 +34,34 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 const tools = [
-  { title: "Caption Generator", desc: "Scroll-stopping social captions", url: "/dashboard/caption", icon: MessageSquare, color: "from-indigo-500 to-purple-500" },
-  { title: "Ad Copy", desc: "High-converting ad headlines & body", url: "/dashboard/adcopy", icon: Megaphone, color: "from-fuchsia-500 to-pink-500" },
-  { title: "Product Description", desc: "Persuasive product copy", url: "/dashboard/product", icon: Package, color: "from-blue-500 to-cyan-500" },
-  { title: "AI Image Generator", desc: "Marketing visuals from text", url: "/dashboard/image", icon: ImageIcon, color: "from-purple-500 to-pink-500" },
+  {
+    title: "Caption Generator",
+    desc: "Scroll-stopping social captions",
+    url: "/dashboard/caption",
+    icon: MessageSquare,
+    color: "from-indigo-500 to-purple-500",
+  },
+  {
+    title: "Ad Copy",
+    desc: "High-converting ad headlines & body",
+    url: "/dashboard/adcopy",
+    icon: Megaphone,
+    color: "from-fuchsia-500 to-pink-500",
+  },
+  {
+    title: "Product Description",
+    desc: "Persuasive product copy",
+    url: "/dashboard/product",
+    icon: Package,
+    color: "from-blue-500 to-cyan-500",
+  },
+  {
+    title: "AI Image Generator",
+    desc: "Marketing visuals from text",
+    url: "/dashboard/image",
+    icon: ImageIcon,
+    color: "from-purple-500 to-pink-500",
+  },
 ];
 
 function timeAgo(iso: string) {
@@ -69,6 +101,7 @@ function DashboardHome() {
   const { user } = useAuth();
   const list = useServerFn(listGenerations);
   const getProfile = useServerFn(getMyProfile);
+  const getUsage = useServerFn(getMyUsage);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const { data: generations, isLoading } = useQuery({
@@ -76,14 +109,16 @@ function DashboardHome() {
     queryFn: () => list({ data: { limit: 100 } }),
   });
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
+  const { data: usage } = useQuery({ queryKey: ["usage"], queryFn: () => getUsage() });
 
-  const plan = PLAN_BY_ID.free; // placeholder — settings page lets user pick
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const plan = usage?.plan ?? PLAN_BY_ID.free;
   const all = generations ?? [];
-  const thisMonth = all.filter((g) => new Date(g.created_at).getTime() >= monthStart);
   const wordCount = all.reduce(
-    (acc, g) => acc + JSON.stringify(g.output ?? {}).split(/\s+/).filter(Boolean).length,
+    (acc, g) =>
+      acc +
+      JSON.stringify(g.output ?? {})
+        .split(/\s+/)
+        .filter(Boolean).length,
     0,
   );
   const hoursSaved = Math.round(all.length * 0.25);
@@ -99,7 +134,13 @@ function DashboardHome() {
 
   const recent = all.slice(0, 8);
   const name = profile?.display_name || user?.email?.split("@")[0] || "there";
-  const overLimit = plan.monthlyGenerations > 0 && thisMonth.length >= plan.monthlyGenerations;
+  const textLimitReached = Boolean(
+    usage && plan.monthlyGenerations > 0 && usage.textUsed >= plan.monthlyGenerations,
+  );
+  const imageLimitReached = Boolean(
+    usage && plan.monthlyImages > 0 && usage.imageUsed >= plan.monthlyImages,
+  );
+  const overLimit = textLimitReached || imageLimitReached;
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
@@ -155,13 +196,13 @@ function DashboardHome() {
         <div className="space-y-4">
           <UsageMeter
             label="Text generations"
-            used={thisMonth.filter((g) => g.type !== "image").length}
+            used={usage?.textUsed ?? 0}
             limit={plan.monthlyGenerations}
             hint="Captions, ad copy, and product descriptions"
           />
           <UsageMeter
             label="AI images"
-            used={thisMonth.filter((g) => g.type === "image").length}
+            used={usage?.imageUsed ?? 0}
             limit={plan.monthlyImages}
             hint="High-resolution marketing visuals"
           />
@@ -175,7 +216,9 @@ function DashboardHome() {
           {tools.map((t) => (
             <Link key={t.url} to={t.url}>
               <Card className="group h-full border-border/60 bg-gradient-card p-5 transition-all hover:-translate-y-1 hover:shadow-glow">
-                <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${t.color} shadow-glow`}>
+                <div
+                  className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${t.color} shadow-glow`}
+                >
                   <t.icon className="h-5 w-5 text-white" />
                 </div>
                 <h3 className="font-display font-semibold">{t.title}</h3>
@@ -197,7 +240,9 @@ function DashboardHome() {
         </div>
         {isLoading ? (
           <div className="space-y-3">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
           </div>
         ) : recent.length === 0 ? (
           <EmptyState
@@ -217,7 +262,9 @@ function DashboardHome() {
                   </span>
                   <p className="mt-2 line-clamp-1 text-sm">{previewOf(r.output)}</p>
                 </div>
-                <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {timeAgo(r.created_at)}
+                </span>
               </li>
             ))}
           </ul>

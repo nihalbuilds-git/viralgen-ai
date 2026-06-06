@@ -1,5 +1,6 @@
 import { createParser } from "eventsource-parser";
 import { flushSync } from "react-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 export async function streamImage(
   endpoint: string,
@@ -7,14 +8,21 @@ export async function streamImage(
   onFrame: (dataUrl: string, isFinal: boolean) => void,
   signal?: AbortSignal,
 ): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   const res = await fetch(endpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+    },
     body: JSON.stringify(body),
     signal,
   });
   if (!res.ok || !res.body) {
-    throw new Error(`Image generation failed (${res.status})`);
+    const message = await res.text().catch(() => "");
+    throw new Error(message || `Image generation failed (${res.status})`);
   }
 
   let sawCompleted = false;

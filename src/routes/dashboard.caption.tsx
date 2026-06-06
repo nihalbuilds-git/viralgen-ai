@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, Sparkles, Loader2 } from "lucide-react";
@@ -22,6 +22,8 @@ import {
 import { generateCaptionsFn } from "@/lib/ai.functions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ToolHeader } from "@/components/tool-header";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/caption")({
   component: CaptionTool,
@@ -32,13 +34,24 @@ function CaptionTool() {
   const [product, setProduct] = useState("");
   const [tone, setTone] = useState("engaging");
   const [audience, setAudience] = useState("");
+  const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const qc = useQueryClient();
 
   const fn = useServerFn(generateCaptionsFn);
   const mutation = useMutation({
     mutationFn: (vars: { platform: string; product: string; tone: string; audience: string }) =>
       fn({ data: vars }),
-    onError: (e: Error) => toast.error(e.message || "Generation failed"),
-    onSuccess: () => toast.success("Captions ready"),
+    onError: (e: Error) => {
+      const limitMessage = getUsageLimitMessage(e);
+      if (limitMessage) setUpgradeReason(limitMessage);
+      else toast.error(e.message || "Generation failed");
+    },
+    onSuccess: () => {
+      toast.success("Captions ready");
+      qc.invalidateQueries({ queryKey: ["generations"] });
+      qc.invalidateQueries({ queryKey: ["usage"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
+    },
   });
 
   const handle = () => {
@@ -69,7 +82,9 @@ function CaptionTool() {
               <div className="space-y-2">
                 <Label>Platform</Label>
                 <Select value={platform} onValueChange={setPlatform}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Instagram">Instagram</SelectItem>
                     <SelectItem value="TikTok">TikTok</SelectItem>
@@ -82,7 +97,9 @@ function CaptionTool() {
               <div className="space-y-2">
                 <Label>Tone</Label>
                 <Select value={tone} onValueChange={setTone}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="engaging">Engaging</SelectItem>
                     <SelectItem value="witty">Witty</SelectItem>
@@ -157,7 +174,11 @@ function CaptionTool() {
                     <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
                       {i === 0 && <FavoriteButton generationId={mutation.data?.generationId} />}
                       <CopyButton text={c} />
-                      <ExportButtons filename={`caption-${i + 1}`} title={`Caption ${i + 1}`} text={c} />
+                      <ExportButtons
+                        filename={`caption-${i + 1}`}
+                        title={`Caption ${i + 1}`}
+                        text={c}
+                      />
                     </div>
                   </Card>
                 </motion.div>
@@ -166,6 +187,11 @@ function CaptionTool() {
           </motion.div>
         )}
       </AnimatePresence>
+      <UpgradeModal
+        open={Boolean(upgradeReason)}
+        onOpenChange={(open) => !open && setUpgradeReason(null)}
+        reason={upgradeReason ?? undefined}
+      />
     </div>
   );
 }

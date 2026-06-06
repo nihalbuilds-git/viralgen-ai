@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Sparkles, Loader2 } from "lucide-react";
@@ -14,6 +14,8 @@ import { generateProductDescriptionFn } from "@/lib/ai.functions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CopyButton } from "@/components/copy-button";
 import { ToolHeader } from "@/components/tool-header";
+import { UpgradeModal } from "@/components/upgrade-modal";
+import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/product")({
   component: ProductTool,
@@ -23,13 +25,23 @@ function ProductTool() {
   const [name, setName] = useState("");
   const [features, setFeatures] = useState("");
   const [audience, setAudience] = useState("");
+  const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const qc = useQueryClient();
 
   const fn = useServerFn(generateProductDescriptionFn);
   const mutation = useMutation({
-    mutationFn: (vars: { name: string; features: string; audience: string }) =>
-      fn({ data: vars }),
-    onError: (e: Error) => toast.error(e.message || "Generation failed"),
-    onSuccess: () => toast.success("Description ready"),
+    mutationFn: (vars: { name: string; features: string; audience: string }) => fn({ data: vars }),
+    onError: (e: Error) => {
+      const limitMessage = getUsageLimitMessage(e);
+      if (limitMessage) setUpgradeReason(limitMessage);
+      else toast.error(e.message || "Generation failed");
+    },
+    onSuccess: () => {
+      toast.success("Description ready");
+      qc.invalidateQueries({ queryKey: ["generations"] });
+      qc.invalidateQueries({ queryKey: ["usage"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
+    },
   });
 
   const handle = () => {
@@ -59,11 +71,21 @@ function ProductTool() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Product name</Label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Aero Hoodie" />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Aero Hoodie"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="audience">Target audience</Label>
-                <Input id="audience" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. Outdoor enthusiasts and digital nomads" />
+                <Input
+                  id="audience"
+                  value={audience}
+                  onChange={(e) => setAudience(e.target.value)}
+                  placeholder="e.g. Outdoor enthusiasts and digital nomads"
+                />
               </div>
             </div>
             <div className="space-y-2">
@@ -118,6 +140,11 @@ function ProductTool() {
           </motion.div>
         )}
       </AnimatePresence>
+      <UpgradeModal
+        open={Boolean(upgradeReason)}
+        onOpenChange={(open) => !open && setUpgradeReason(null)}
+        reason={upgradeReason ?? undefined}
+      />
     </div>
   );
 }

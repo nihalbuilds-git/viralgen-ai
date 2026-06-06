@@ -55,6 +55,10 @@ function FavoritesPage() {
           {data.map((f) => {
             const g = f.generation;
             if (!g) return null;
+            const imageUrl =
+              g.output && typeof g.output === "object" && "imageUrl" in g.output
+                ? String((g.output as Record<string, unknown>).imageUrl ?? "")
+                : "";
             return (
               <Card key={f.id} className="border-border/60 bg-gradient-card p-5">
                 <div className="flex items-start justify-between gap-4">
@@ -68,6 +72,14 @@ function FavoritesPage() {
                       </span>
                     </div>
                     <p className="mt-2 font-medium">{g.title}</p>
+                    {imageUrl && (
+                      <img
+                        src={imageUrl}
+                        alt={g.title}
+                        className="mt-3 aspect-video w-full max-w-sm rounded-xl object-cover"
+                        loading="lazy"
+                      />
+                    )}
                     <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap text-xs text-muted-foreground">
                       {JSON.stringify(g.output, null, 2)}
                     </pre>
