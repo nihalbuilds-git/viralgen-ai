@@ -27,12 +27,37 @@ export const Route = createFileRoute("/dashboard/image")({
 });
 
 const STYLES = [
-  { id: "realistic", label: "Realistic", suffix: "photorealistic, ultra-detailed, natural lighting, 50mm lens, shallow depth of field" },
-  { id: "3d", label: "3D", suffix: "octane 3D render, soft global illumination, subsurface scattering, studio HDRI" },
-  { id: "cartoon", label: "Cartoon", suffix: "vibrant cartoon illustration, bold outlines, flat shading, playful" },
-  { id: "minimal", label: "Minimal", suffix: "minimalist design, generous whitespace, soft pastel palette, clean composition" },
-  { id: "luxury", label: "Luxury", suffix: "luxury editorial, gold and marble accents, cinematic lighting, premium product photography" },
-  { id: "cyberpunk", label: "Cyberpunk", suffix: "cyberpunk neon, rain-soaked street, magenta and cyan lights, futuristic, moody" },
+  {
+    id: "realistic",
+    label: "Realistic",
+    suffix: "photorealistic, ultra-detailed, natural lighting, 50mm lens, shallow depth of field",
+  },
+  {
+    id: "3d",
+    label: "3D",
+    suffix: "octane 3D render, soft global illumination, subsurface scattering, studio HDRI",
+  },
+  {
+    id: "cartoon",
+    label: "Cartoon",
+    suffix: "vibrant cartoon illustration, bold outlines, flat shading, playful",
+  },
+  {
+    id: "minimal",
+    label: "Minimal",
+    suffix: "minimalist design, generous whitespace, soft pastel palette, clean composition",
+  },
+  {
+    id: "luxury",
+    label: "Luxury",
+    suffix:
+      "luxury editorial, gold and marble accents, cinematic lighting, premium product photography",
+  },
+  {
+    id: "cyberpunk",
+    label: "Cyberpunk",
+    suffix: "cyberpunk neon, rain-soaked street, magenta and cyan lights, futuristic, moody",
+  },
 ];
 
 const RATIOS = [
@@ -140,10 +165,14 @@ function ImageTool() {
                 <div className="space-y-2">
                   <Label>Style</Label>
                   <Select value={style} onValueChange={setStyle}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       {STYLES.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -151,10 +180,14 @@ function ImageTool() {
                 <div className="space-y-2">
                   <Label>Aspect ratio</Label>
                   <Select value={ratio} onValueChange={setRatio}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       {RATIOS.map((r) => (
-                        <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>
+                        <SelectItem key={r.id} value={r.id}>
+                          {r.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -171,7 +204,10 @@ function ImageTool() {
                       variant={count === n ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCount(n)}
-                      className={cn("flex-1 transition-all", count === n && "bg-gradient-primary shadow-glow")}
+                      className={cn(
+                        "flex-1 transition-all",
+                        count === n && "bg-gradient-primary shadow-glow",
+                      )}
                     >
                       {n}
                     </Button>
@@ -185,7 +221,11 @@ function ImageTool() {
                 size="lg"
                 className="btn-shine w-full bg-gradient-primary text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] hover:opacity-95"
               >
-                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
                 {loading ? "Generating…" : "Generate"}
               </Button>
             </div>
@@ -202,7 +242,12 @@ function ImageTool() {
               <p className="text-sm">Your generated images will appear here</p>
             </Card>
           ) : (
-            <div className={cn("grid gap-4", slots.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2")}>
+            <div
+              className={cn(
+                "grid gap-4",
+                slots.length === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2",
+              )}
+            >
               {slots.map((slot, i) => (
                 <motion.div
                   key={i}
