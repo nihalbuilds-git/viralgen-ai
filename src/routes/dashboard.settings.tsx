@@ -14,8 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "@/components/theme-provider";
 import { getMyProfile, updateMyProfile } from "@/lib/profile.functions";
+import { getMyUsage, updateMyPlan } from "@/lib/generations.functions";
 import { useAuth } from "@/hooks/use-auth";
-import { PLANS, type PlanId } from "@/lib/plans";
+import { PLANS } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/settings")({
@@ -27,14 +28,16 @@ function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const get = useServerFn(getMyProfile);
   const upd = useServerFn(updateMyProfile);
+  const getUsage = useServerFn(getMyUsage);
+  const updatePlan = useServerFn(updateMyPlan);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({ queryKey: ["profile"], queryFn: () => get() });
+  const { data: usage } = useQuery({ queryKey: ["usage"], queryFn: () => getUsage() });
 
   const [displayName, setDisplayName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [brandVoice, setBrandVoice] = useState("");
-  const [plan, setPlan] = useState<PlanId>("free");
   const [notifEmail, setNotifEmail] = useState(true);
   const [notifProduct, setNotifProduct] = useState(true);
   const [notifWeekly, setNotifWeekly] = useState(false);
@@ -61,6 +64,17 @@ function SettingsPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const planMut = useMutation({
+    mutationFn: (planId: "free" | "pro" | "enterprise") => updatePlan({ data: { planId } }),
+    onSuccess: (row) => {
+      toast.success(`Switched to ${PLANS.find((p) => p.id === row.plan_id)?.name ?? "selected"} plan`);
+      qc.invalidateQueries({ queryKey: ["usage"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const plan = usage?.planId ?? "free";
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 animate-fade-in">
@@ -149,9 +163,10 @@ function SettingsPage() {
                   size="sm"
                   variant={plan === p.id ? "default" : "outline"}
                   className={cn("mt-4 w-full", plan === p.id && "bg-gradient-primary shadow-glow")}
-                  onClick={() => { setPlan(p.id); toast.success(`Switched to ${p.name}`); }}
+                  onClick={() => planMut.mutate(p.id)}
+                  disabled={planMut.isPending}
                 >
-                  {plan === p.id ? "Current plan" : "Select"}
+                  {plan === p.id ? "Current plan" : planMut.isPending ? "Saving…" : "Select"}
                 </Button>
               </Card>
             ))}
