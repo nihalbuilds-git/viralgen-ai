@@ -3,8 +3,23 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BarChart3, TrendingUp, FileText, Zap, Clock } from "lucide-react";
 import {
-  Bar, BarChart, CartesianGrid, Legend, Line, LineChart, PolarAngleAxis, PolarGrid,
-  Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell, Pie, PieChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Cell,
+  Pie,
+  PieChart,
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,7 +71,9 @@ function AnalyticsPage() {
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))}
         </div>
       ) : !data || data.totalGenerations === 0 ? (
         <EmptyState
@@ -89,10 +106,26 @@ function AnalyticsPage() {
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={daily}>
                   <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" opacity={0.4} />
-                  <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fontSize: 11 }}
+                    stroke="hsl(var(--muted-foreground))"
+                  />
                   <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
-                  <Line type="monotone" dataKey="generations" stroke="hsl(265, 80%, 65%)" strokeWidth={2.5} dot={false} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="generations"
+                    stroke="hsl(265, 80%, 65%)"
+                    strokeWidth={2.5}
+                    dot={false}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </Card>
