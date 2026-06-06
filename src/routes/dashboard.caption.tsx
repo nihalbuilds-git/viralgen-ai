@@ -50,6 +50,7 @@ function CaptionTool() {
       toast.success("Captions ready");
       qc.invalidateQueries({ queryKey: ["generations"] });
       qc.invalidateQueries({ queryKey: ["usage"] });
+      qc.invalidateQueries({ queryKey: ["analytics"] });
     },
   });
 
