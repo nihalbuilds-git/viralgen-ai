@@ -1,7 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { callLovableAIJson } from "./ai-gateway.server";
+import { assertUsageAvailable } from "./usage.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+async function getBrandVoice(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("brand_voice")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const voice = typeof data?.brand_voice === "string" ? data.brand_voice.trim() : "";
+  return voice ? `\nBrand voice to follow: ${voice}` : "";
+}
 
 async function saveGenerationRow(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,12 +57,14 @@ export const generateCaptionsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CaptionInput.parse(d))
   .handler(async ({ data, context }) => {
+    await assertUsageAvailable(context.supabase, context.userId, "text");
+    const brandVoice = await getBrandVoice(context.supabase, context.userId);
     const result = await callLovableAIJson<{ captions: string[] }>({
       messages: [
         {
           role: "system",
           content:
-            "You are an expert social media copywriter. Always reply with valid JSON matching the requested schema. No commentary.",
+            `You are an expert social media copywriter. Always reply with valid JSON matching the requested schema. No commentary.${brandVoice}`,
         },
         {
           role: "user",
@@ -83,12 +101,14 @@ export const generateAdCopyFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => AdCopyInput.parse(d))
   .handler(async ({ data, context }) => {
+    await assertUsageAvailable(context.supabase, context.userId, "text");
+    const brandVoice = await getBrandVoice(context.supabase, context.userId);
     const result = await callLovableAIJson<AdCopyResult>({
       messages: [
         {
           role: "system",
           content:
-            "You are a senior performance-marketing copywriter. Respond ONLY with valid JSON. No commentary.",
+            `You are a senior performance-marketing copywriter. Respond ONLY with valid JSON. No commentary.${brandVoice}`,
         },
         {
           role: "user",
@@ -126,12 +146,14 @@ export const generateProductDescriptionFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ProductInput.parse(d))
   .handler(async ({ data, context }) => {
+    await assertUsageAvailable(context.supabase, context.userId, "text");
+    const brandVoice = await getBrandVoice(context.supabase, context.userId);
     const result = await callLovableAIJson<{ description: string }>({
       messages: [
         {
           role: "system",
           content:
-            "You are an expert SEO product copywriter. Respond ONLY with valid JSON. No commentary.",
+            `You are an expert SEO product copywriter. Respond ONLY with valid JSON. No commentary.${brandVoice}`,
         },
         {
           role: "user",
