@@ -82,7 +82,9 @@ function CaptionTool() {
               <div className="space-y-2">
                 <Label>Platform</Label>
                 <Select value={platform} onValueChange={setPlatform}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Instagram">Instagram</SelectItem>
                     <SelectItem value="TikTok">TikTok</SelectItem>
@@ -95,7 +97,9 @@ function CaptionTool() {
               <div className="space-y-2">
                 <Label>Tone</Label>
                 <Select value={tone} onValueChange={setTone}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="engaging">Engaging</SelectItem>
                     <SelectItem value="witty">Witty</SelectItem>
@@ -170,7 +174,11 @@ function CaptionTool() {
                     <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
                       {i === 0 && <FavoriteButton generationId={mutation.data?.generationId} />}
                       <CopyButton text={c} />
-                      <ExportButtons filename={`caption-${i + 1}`} title={`Caption ${i + 1}`} text={c} />
+                      <ExportButtons
+                        filename={`caption-${i + 1}`}
+                        title={`Caption ${i + 1}`}
+                        text={c}
+                      />
                     </div>
                   </Card>
                 </motion.div>
