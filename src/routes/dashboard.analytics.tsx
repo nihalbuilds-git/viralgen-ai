@@ -135,9 +135,19 @@ function AnalyticsPage() {
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={daily}>
                   <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" opacity={0.4} />
-                  <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fontSize: 11 }}
+                    stroke="hsl(var(--muted-foreground))"
+                  />
                   <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                    }}
+                  />
                   <Bar dataKey="words" fill="hsl(320, 80%, 65%)" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -148,8 +158,16 @@ function AnalyticsPage() {
               <ResponsiveContainer width="100%" height={240}>
                 <RadarChart data={radar} outerRadius={90}>
                   <PolarGrid stroke="hsl(var(--border))" />
-                  <PolarAngleAxis dataKey="metric" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
-                  <Radar dataKey="score" stroke="hsl(265, 80%, 65%)" fill="hsl(265, 80%, 65%)" fillOpacity={0.4} />
+                  <PolarAngleAxis
+                    dataKey="metric"
+                    tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  />
+                  <Radar
+                    dataKey="score"
+                    stroke="hsl(265, 80%, 65%)"
+                    fill="hsl(265, 80%, 65%)"
+                    fillOpacity={0.4}
+                  />
                 </RadarChart>
               </ResponsiveContainer>
             </Card>
@@ -161,12 +179,28 @@ function AnalyticsPage() {
               </div>
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
-                  <Pie data={totals} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={4}>
+                  <Pie
+                    data={totals}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={90}
+                    paddingAngle={4}
+                  >
                     {totals.map((entry) => (
-                      <Cell key={entry.name} fill={TYPE_COLORS[entry.name] ?? "hsl(var(--primary))"} />
+                      <Cell
+                        key={entry.name}
+                        fill={TYPE_COLORS[entry.name] ?? "hsl(var(--primary))"}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ background: "hsl(var(--popover))", border: "1px solid hsl(var(--border))", borderRadius: 8 }} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "hsl(var(--popover))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                    }}
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
