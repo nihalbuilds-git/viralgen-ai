@@ -134,11 +134,13 @@ function DashboardHome() {
 
   const recent = all.slice(0, 8);
   const name = profile?.display_name || user?.email?.split("@")[0] || "there";
-  const overLimit = Boolean(
-    usage &&
-      ((plan.monthlyGenerations > 0 && usage.textUsed >= plan.monthlyGenerations) ||
-        (plan.monthlyImages > 0 && usage.imageUsed >= plan.monthlyImages)),
+  const textLimitReached = Boolean(
+    usage && plan.monthlyGenerations > 0 && usage.textUsed >= plan.monthlyGenerations,
   );
+  const imageLimitReached = Boolean(
+    usage && plan.monthlyImages > 0 && usage.imageUsed >= plan.monthlyImages,
+  );
+  const overLimit = textLimitReached || imageLimitReached;
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
@@ -238,7 +240,9 @@ function DashboardHome() {
         </div>
         {isLoading ? (
           <div className="space-y-3">
-            {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
           </div>
         ) : recent.length === 0 ? (
           <EmptyState
@@ -258,7 +262,9 @@ function DashboardHome() {
                   </span>
                   <p className="mt-2 line-clamp-1 text-sm">{previewOf(r.output)}</p>
                 </div>
-                <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(r.created_at)}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {timeAgo(r.created_at)}
+                </span>
               </li>
             ))}
           </ul>
