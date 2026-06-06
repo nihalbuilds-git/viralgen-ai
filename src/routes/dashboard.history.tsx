@@ -11,19 +11,27 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FavoriteButton } from "@/components/favorite-button";
 import { CopyButton } from "@/components/copy-button";
 import { ExportButtons } from "@/components/export-buttons";
 import { EmptyState } from "@/components/empty-state";
-import {
-  listGenerations, deleteGeneration,
-} from "@/lib/generations.functions";
+import { listGenerations, deleteGeneration } from "@/lib/generations.functions";
 import { outputToText } from "@/lib/export";
 
 export const Route = createFileRoute("/dashboard/history")({
@@ -101,15 +109,22 @@ function HistoryPage() {
             />
           </div>
           <Select value={type} onValueChange={(v) => setType(v as typeof type)}>
-            <SelectTrigger><Filter className="mr-2 h-4 w-4" /><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               {TYPES.map((t) => (
-                <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>
+                <SelectItem key={t} value={t} className="capitalize">
+                  {t}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={sort} onValueChange={(v) => setSort(v as typeof sort)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="newest">Newest first</SelectItem>
               <SelectItem value="oldest">Oldest first</SelectItem>
