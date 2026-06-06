@@ -63,8 +63,7 @@ export const generateCaptionsFn = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content:
-            `You are an expert social media copywriter. Always reply with valid JSON matching the requested schema. No commentary.${brandVoice}`,
+          content: `You are an expert social media copywriter. Always reply with valid JSON matching the requested schema. No commentary.${brandVoice}`,
         },
         {
           role: "user",
@@ -107,8 +106,7 @@ export const generateAdCopyFn = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content:
-            `You are a senior performance-marketing copywriter. Respond ONLY with valid JSON. No commentary.${brandVoice}`,
+          content: `You are a senior performance-marketing copywriter. Respond ONLY with valid JSON. No commentary.${brandVoice}`,
         },
         {
           role: "user",
@@ -152,8 +150,7 @@ export const generateProductDescriptionFn = createServerFn({ method: "POST" })
       messages: [
         {
           role: "system",
-          content:
-            `You are an expert SEO product copywriter. Respond ONLY with valid JSON. No commentary.${brandVoice}`,
+          content: `You are an expert SEO product copywriter. Respond ONLY with valid JSON. No commentary.${brandVoice}`,
         },
         {
           role: "user",
