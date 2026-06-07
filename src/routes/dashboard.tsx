@@ -1,13 +1,14 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { MobileTabBar } from "@/components/mobile-tabbar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Bell, LogOut, Loader2 } from "lucide-react";
+import { Bell, LogOut, Loader2, Gauge } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { UsageDialog } from "@/components/usage-dialog";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardLayout,
