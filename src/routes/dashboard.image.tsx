@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
+import { GenerationError } from "@/components/generation-error";
 
 export const Route = createFileRoute("/dashboard/image")({
   component: ImageTool,
