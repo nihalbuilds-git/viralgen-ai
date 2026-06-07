@@ -125,6 +125,27 @@ function ProductTool() {
         </Card>
       </motion.div>
 
+      {fieldsReady ? (
+        <PromptPreview
+          prompt={buildProductPrompt({ name, features, audience }, brandVoice)}
+          brandVoice={brandVoice}
+        />
+      ) : (
+        <PromptPreviewSkeleton />
+      )}
+
+      {mutation.error && !mutation.isPending && (
+        <GenerationError
+          error={mutation.error as Error}
+          onRetry={handle}
+          onUpgrade={() => {
+            const msg = getUsageLimitMessage(mutation.error as Error);
+            if (msg) setUpgradeReason(msg);
+          }}
+          isRetrying={mutation.isPending}
+        />
+      )}
+
       <AnimatePresence>
         {mutation.data && (
           <motion.div
