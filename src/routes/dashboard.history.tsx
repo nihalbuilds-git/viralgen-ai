@@ -49,6 +49,8 @@ function HistoryPage() {
   const [q, setQ] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
   const [sort, setSort] = useState<(typeof SORT)[number]>("newest");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
