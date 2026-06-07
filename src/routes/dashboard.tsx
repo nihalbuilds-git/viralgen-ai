@@ -91,6 +91,7 @@ function DashboardLayout() {
         </div>
       </div>
       <MobileTabBar />
+      <UsageDialog open={usageOpen} onOpenChange={setUsageOpen} />
     </SidebarProvider>
   );
 }
