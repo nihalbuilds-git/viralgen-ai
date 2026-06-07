@@ -77,6 +77,7 @@ function ImageTool() {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<Error | null>(null);
   const qc = useQueryClient();
 
   const loading = slots.some((s) => s.loading);
