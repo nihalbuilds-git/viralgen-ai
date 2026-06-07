@@ -60,6 +60,19 @@ function DashboardLayout() {
               <span className="font-display text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Workspace</span>
             </div>
             <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setUsageOpen(true)}
+                className="hidden gap-1.5 hover:bg-accent/60 sm:inline-flex"
+                title="View usage"
+              >
+                <Gauge className="h-4 w-4" />
+                <span className="text-xs font-medium">Usage</span>
+              </Button>
+              <Button variant="ghost" size="icon" className="hover:bg-accent/60 sm:hidden" onClick={() => setUsageOpen(true)} title="Usage">
+                <Gauge className="h-4 w-4" />
+              </Button>
               <Button variant="ghost" size="icon" className="hover:bg-accent/60">
                 <Bell className="h-4 w-4" />
               </Button>
