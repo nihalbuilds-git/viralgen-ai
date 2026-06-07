@@ -138,6 +138,46 @@ function HistoryPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              From
+            </label>
+            <Input
+              type="date"
+              value={dateFrom}
+              max={dateTo || undefined}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              To
+            </label>
+            <Input
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
+          {(dateFrom || dateTo || q || type !== "all") && (
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                  setQ("");
+                  setType("all");
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          )}
+        </div>
       </Card>
 
       {isLoading ? (
