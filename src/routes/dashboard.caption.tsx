@@ -42,6 +42,11 @@ function CaptionTool() {
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
 
+  const profileFn = useServerFn(getMyProfile);
+  const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
+  const brandVoice = profile?.brand_voice ?? "";
+  const fieldsReady = product.trim().length > 0 && audience.trim().length > 0;
+
   const fn = useServerFn(generateCaptionsFn);
   const mutation = useMutation({
     mutationFn: (vars: { platform: string; product: string; tone: string; audience: string }) =>
