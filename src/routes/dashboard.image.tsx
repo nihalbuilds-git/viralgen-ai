@@ -87,6 +87,7 @@ function ImageTool() {
       toast.error("Describe the image you want to create");
       return;
     }
+    setLastError(null);
     const styleDef = STYLES.find((s) => s.id === style)!;
     const ratioDef = RATIOS.find((r) => r.id === ratio)!;
     const fullPrompt = `${prompt.trim()}. Style: ${styleDef.suffix}.`;
@@ -111,9 +112,11 @@ function ImageTool() {
             });
           },
         ).catch((err) => {
-          const limitMessage = getUsageLimitMessage(err);
+          const error = err instanceof Error ? err : new Error(String(err));
+          const limitMessage = getUsageLimitMessage(error);
           if (limitMessage) setUpgradeReason(limitMessage);
-          else toast.error(err.message ?? "Generation failed");
+          else toast.error(error.message || "Generation failed");
+          setLastError(error);
           setSlots((prev) => {
             const next = [...prev];
             next[i] = { src: null, isFinal: false, loading: false };
