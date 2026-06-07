@@ -22,6 +22,11 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { CopyButton } from "@/components/copy-button";
 import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { GenerationError } from "@/components/generation-error";
+import { PromptPreview, PromptPreviewSkeleton } from "@/components/prompt-preview";
+import { useQuery } from "@tanstack/react-query";
+import { getMyProfile } from "@/lib/profile.functions";
+import { buildAdCopyPrompt } from "@/lib/prompts";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/adcopy")({
