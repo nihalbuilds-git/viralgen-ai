@@ -49,6 +49,8 @@ function HistoryPage() {
   const [q, setQ] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("all");
   const [sort, setSort] = useState<(typeof SORT)[number]>("newest");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -69,6 +71,8 @@ function HistoryPage() {
 
   const filtered = useMemo(() => {
     const lower = q.trim().toLowerCase();
+    const fromTs = dateFrom ? new Date(dateFrom).getTime() : null;
+    const toTs = dateTo ? new Date(dateTo).getTime() + 24 * 60 * 60 * 1000 - 1 : null;
     let rows = (data ?? []).filter((g) => type === "all" || g.type === type);
     if (lower) {
       rows = rows.filter(
@@ -77,13 +81,15 @@ function HistoryPage() {
           JSON.stringify(g.output).toLowerCase().includes(lower),
       );
     }
+    if (fromTs !== null) rows = rows.filter((g) => +new Date(g.created_at) >= fromTs);
+    if (toTs !== null) rows = rows.filter((g) => +new Date(g.created_at) <= toTs);
     rows = [...rows].sort((a, b) => {
       if (sort === "oldest") return +new Date(a.created_at) - +new Date(b.created_at);
       if (sort === "score") return (b.title.length % 30) - (a.title.length % 30);
       return +new Date(b.created_at) - +new Date(a.created_at);
     });
     return rows;
-  }, [data, q, type, sort]);
+  }, [data, q, type, sort, dateFrom, dateTo]);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 animate-fade-in">
@@ -132,6 +138,46 @@ function HistoryPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              From
+            </label>
+            <Input
+              type="date"
+              value={dateFrom}
+              max={dateTo || undefined}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              To
+            </label>
+            <Input
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
+          </div>
+          {(dateFrom || dateTo || q || type !== "all") && (
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setDateFrom("");
+                  setDateTo("");
+                  setQ("");
+                  setType("all");
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          )}
+        </div>
       </Card>
 
       {isLoading ? (
@@ -156,6 +202,8 @@ function HistoryPage() {
               ? () => {
                   setQ("");
                   setType("all");
+                  setDateFrom("");
+                  setDateTo("");
                 }
               : undefined
           }

@@ -3,6 +3,12 @@ import { z } from "zod";
 import { callLovableAIJson } from "./ai-gateway.server";
 import { assertUsageAvailable } from "./usage.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  buildAdCopyPrompt,
+  buildCaptionPrompt,
+  buildProductPrompt,
+  type AdCopyVars,
+} from "./prompts";
 
 async function getBrandVoice(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,8 +21,7 @@ async function getBrandVoice(
     .eq("id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  const voice = typeof data?.brand_voice === "string" ? data.brand_voice.trim() : "";
-  return voice ? `\nBrand voice to follow: ${voice}` : "";
+  return typeof data?.brand_voice === "string" ? data.brand_voice : "";
 }
 
 async function saveGenerationRow(
@@ -59,18 +64,11 @@ export const generateCaptionsFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertUsageAvailable(context.supabase, context.userId, "text");
     const brandVoice = await getBrandVoice(context.supabase, context.userId);
+    const { system, user } = buildCaptionPrompt(data, brandVoice);
     const result = await callLovableAIJson<{ captions: string[] }>({
       messages: [
-        {
-          role: "system",
-          content: `You are an expert social media copywriter. Always reply with valid JSON matching the requested schema. No commentary.${brandVoice}`,
-        },
-        {
-          role: "user",
-          content: `Generate 3 scroll-stopping ${data.platform} captions promoting "${data.product}" for the audience: ${data.audience}. Tone: ${data.tone}. Include relevant emojis and 3-6 hashtags per caption.
-
-Respond as JSON: { "captions": ["caption 1", "caption 2", "caption 3"] }`,
-        },
+        { role: "system", content: system },
+        { role: "user", content: user },
       ],
     });
     if (!Array.isArray(result.captions) || result.captions.length === 0) {
@@ -102,23 +100,11 @@ export const generateAdCopyFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertUsageAvailable(context.supabase, context.userId, "text");
     const brandVoice = await getBrandVoice(context.supabase, context.userId);
+    const { system, user } = buildAdCopyPrompt(data as AdCopyVars, brandVoice);
     const result = await callLovableAIJson<AdCopyResult>({
       messages: [
-        {
-          role: "system",
-          content: `You are a senior performance-marketing copywriter. Respond ONLY with valid JSON. No commentary.${brandVoice}`,
-        },
-        {
-          role: "user",
-          content: `Write high-converting ad copy.
-Product: ${data.product}
-Audience: ${data.audience}
-Offer: ${data.offer}
-Tone: ${data.tone}
-
-Constraints: headline <= 40 chars, primary text 2-3 sentences, CTA 2-4 words.
-Respond as JSON: { "headline": "...", "primaryText": "...", "cta": "..." }`,
-        },
+        { role: "system", content: system },
+        { role: "user", content: user },
       ],
     });
     if (!result.headline || !result.primaryText || !result.cta) {
@@ -146,19 +132,11 @@ export const generateProductDescriptionFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertUsageAvailable(context.supabase, context.userId, "text");
     const brandVoice = await getBrandVoice(context.supabase, context.userId);
+    const { system, user } = buildProductPrompt(data, brandVoice);
     const result = await callLovableAIJson<{ description: string }>({
       messages: [
-        {
-          role: "system",
-          content: `You are an expert SEO product copywriter. Respond ONLY with valid JSON. No commentary.${brandVoice}`,
-        },
-        {
-          role: "user",
-          content: `Write a single SEO-friendly product description (120-180 words) for "${data.name}". Target audience: ${data.audience}. Key features: ${data.features}.
-Include natural keyword usage, benefit-led language, and a closing line that invites action.
-
-Respond as JSON: { "description": "..." }`,
-        },
+        { role: "system", content: system },
+        { role: "user", content: user },
       ],
     });
     if (!result.description) throw new Error("Empty description returned");

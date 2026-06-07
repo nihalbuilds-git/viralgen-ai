@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
+import { GenerationError } from "@/components/generation-error";
 
 export const Route = createFileRoute("/dashboard/image")({
   component: ImageTool,
@@ -76,6 +77,7 @@ function ImageTool() {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<Error | null>(null);
   const qc = useQueryClient();
 
   const loading = slots.some((s) => s.loading);
@@ -85,6 +87,7 @@ function ImageTool() {
       toast.error("Describe the image you want to create");
       return;
     }
+    setLastError(null);
     const styleDef = STYLES.find((s) => s.id === style)!;
     const ratioDef = RATIOS.find((r) => r.id === ratio)!;
     const fullPrompt = `${prompt.trim()}. Style: ${styleDef.suffix}.`;
@@ -109,9 +112,11 @@ function ImageTool() {
             });
           },
         ).catch((err) => {
-          const limitMessage = getUsageLimitMessage(err);
+          const error = err instanceof Error ? err : new Error(String(err));
+          const limitMessage = getUsageLimitMessage(error);
           if (limitMessage) setUpgradeReason(limitMessage);
-          else toast.error(err.message ?? "Generation failed");
+          else toast.error(error.message || "Generation failed");
+          setLastError(error);
           setSlots((prev) => {
             const next = [...prev];
             next[i] = { src: null, isFinal: false, loading: false };
@@ -232,7 +237,21 @@ function ImageTool() {
           </Card>
         </motion.div>
 
-        <div className="lg:col-span-3">
+        <div className="space-y-4 lg:col-span-3">
+          {lastError && !loading && (
+            <GenerationError
+              error={lastError}
+              onRetry={() => {
+                setLastError(null);
+                handle();
+              }}
+              onUpgrade={() => {
+                const msg = getUsageLimitMessage(lastError);
+                if (msg) setUpgradeReason(msg);
+              }}
+              isRetrying={loading}
+            />
+          )}
           {slots.length === 0 ? (
             <Card className="gradient-border glass flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border-0 border-dashed p-10 text-muted-foreground">
               <div className="relative">

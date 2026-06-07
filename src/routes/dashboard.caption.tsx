@@ -23,6 +23,11 @@ import { generateCaptionsFn } from "@/lib/ai.functions";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { GenerationError } from "@/components/generation-error";
+import { PromptPreview, PromptPreviewSkeleton } from "@/components/prompt-preview";
+import { useQuery } from "@tanstack/react-query";
+import { getMyProfile } from "@/lib/profile.functions";
+import { buildCaptionPrompt } from "@/lib/prompts";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/caption")({
@@ -36,6 +41,11 @@ function CaptionTool() {
   const [audience, setAudience] = useState("");
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
+
+  const profileFn = useServerFn(getMyProfile);
+  const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
+  const brandVoice = profile?.brand_voice ?? "";
+  const fieldsReady = product.trim().length > 0 && audience.trim().length > 0;
 
   const fn = useServerFn(generateCaptionsFn);
   const mutation = useMutation({
@@ -145,6 +155,27 @@ function CaptionTool() {
           </div>
         </Card>
       </motion.div>
+
+      {fieldsReady ? (
+        <PromptPreview
+          prompt={buildCaptionPrompt({ platform, product, tone, audience }, brandVoice)}
+          brandVoice={brandVoice}
+        />
+      ) : (
+        <PromptPreviewSkeleton />
+      )}
+
+      {mutation.error && !mutation.isPending && (
+        <GenerationError
+          error={mutation.error as Error}
+          onRetry={handle}
+          onUpgrade={() => {
+            const msg = getUsageLimitMessage(mutation.error as Error);
+            if (msg) setUpgradeReason(msg);
+          }}
+          isRetrying={mutation.isPending}
+        />
+      )}
 
       <AnimatePresence>
         {mutation.data && (

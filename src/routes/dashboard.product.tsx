@@ -15,6 +15,11 @@ import { FavoriteButton } from "@/components/favorite-button";
 import { CopyButton } from "@/components/copy-button";
 import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { GenerationError } from "@/components/generation-error";
+import { PromptPreview, PromptPreviewSkeleton } from "@/components/prompt-preview";
+import { useQuery } from "@tanstack/react-query";
+import { getMyProfile } from "@/lib/profile.functions";
+import { buildProductPrompt } from "@/lib/prompts";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/product")({
@@ -27,6 +32,11 @@ function ProductTool() {
   const [audience, setAudience] = useState("");
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
+
+  const profileFn = useServerFn(getMyProfile);
+  const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
+  const brandVoice = profile?.brand_voice ?? "";
+  const fieldsReady = name.trim() && features.trim() && audience.trim();
 
   const fn = useServerFn(generateProductDescriptionFn);
   const mutation = useMutation({
@@ -114,6 +124,27 @@ function ProductTool() {
           </div>
         </Card>
       </motion.div>
+
+      {fieldsReady ? (
+        <PromptPreview
+          prompt={buildProductPrompt({ name, features, audience }, brandVoice)}
+          brandVoice={brandVoice}
+        />
+      ) : (
+        <PromptPreviewSkeleton />
+      )}
+
+      {mutation.error && !mutation.isPending && (
+        <GenerationError
+          error={mutation.error as Error}
+          onRetry={handle}
+          onUpgrade={() => {
+            const msg = getUsageLimitMessage(mutation.error as Error);
+            if (msg) setUpgradeReason(msg);
+          }}
+          isRetrying={mutation.isPending}
+        />
+      )}
 
       <AnimatePresence>
         {mutation.data && (
