@@ -134,6 +134,24 @@ export const toggleFavorite = createServerFn({ method: "POST" })
     return { favorited: true };
   });
 
+const BulkIdsInput = z.object({
+  generationIds: z.array(z.string().uuid()).min(1).max(200),
+});
+
+export const bulkRemoveFavorites = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => BulkIdsInput.parse(d))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("favorites")
+      .delete()
+      .eq("user_id", userId)
+      .in("generation_id", data.generationIds);
+    if (error) throw new Error(error.message);
+    return { removed: data.generationIds.length };
+  });
+
 export const listFavorites = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
