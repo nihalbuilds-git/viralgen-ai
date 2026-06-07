@@ -41,6 +41,11 @@ function AdCopyTool() {
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
 
+  const profileFn = useServerFn(getMyProfile);
+  const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
+  const brandVoice = profile?.brand_voice ?? "";
+  const fieldsReady = product.trim() && audience.trim() && offer.trim();
+
   const fn = useServerFn(generateAdCopyFn);
   const mutation = useMutation({
     mutationFn: (vars: { product: string; audience: string; offer: string; tone: string }) =>
