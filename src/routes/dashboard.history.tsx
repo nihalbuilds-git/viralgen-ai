@@ -202,6 +202,8 @@ function HistoryPage() {
               ? () => {
                   setQ("");
                   setType("all");
+                  setDateFrom("");
+                  setDateTo("");
                 }
               : undefined
           }
