@@ -237,7 +237,21 @@ function ImageTool() {
           </Card>
         </motion.div>
 
-        <div className="lg:col-span-3">
+        <div className="space-y-4 lg:col-span-3">
+          {lastError && !loading && (
+            <GenerationError
+              error={lastError}
+              onRetry={() => {
+                setLastError(null);
+                handle();
+              }}
+              onUpgrade={() => {
+                const msg = getUsageLimitMessage(lastError);
+                if (msg) setUpgradeReason(msg);
+              }}
+              isRetrying={loading}
+            />
+          )}
           {slots.length === 0 ? (
             <Card className="gradient-border glass flex min-h-[420px] flex-col items-center justify-center gap-3 rounded-2xl border-0 border-dashed p-10 text-muted-foreground">
               <div className="relative">
