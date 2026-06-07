@@ -33,6 +33,11 @@ function ProductTool() {
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
 
+  const profileFn = useServerFn(getMyProfile);
+  const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
+  const brandVoice = profile?.brand_voice ?? "";
+  const fieldsReady = name.trim() && features.trim() && audience.trim();
+
   const fn = useServerFn(generateProductDescriptionFn);
   const mutation = useMutation({
     mutationFn: (vars: { name: string; features: string; audience: string }) => fn({ data: vars }),
