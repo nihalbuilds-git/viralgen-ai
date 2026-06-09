@@ -173,13 +173,12 @@ function TemplatesPage() {
                 asChild
                 className="bg-gradient-primary shadow-glow hover:opacity-90"
               >
-                <Link
-                  to={TOOL_PATH[preview.tool]}
+                <a
+                  href={`${TOOL_PATH[preview.tool]}${toSearchString(preview.prefill)}`}
                   onClick={() => setPreview(null)}
-                  search={preview.prefill as never}
                 >
                   Use this template
-                </Link>
+                </a>
               </Button>
             )}
           </DialogFooter>
