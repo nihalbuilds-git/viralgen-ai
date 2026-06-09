@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Eye } from "lucide-react";
@@ -6,14 +6,51 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { TEMPLATES, CATEGORIES, type Category, type Template } from "@/lib/templates";
+import {
+  TEMPLATES,
+  CATEGORIES,
+  type Category,
+  type Template,
+  type ToolTarget,
+} from "@/lib/templates";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/templates")({
+  head: () => ({
+    meta: [
+      { title: "Prompt Templates — ViralGen AI" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: TemplatesPage,
 });
+
+const TOOL_PATH: Record<ToolTarget, "/dashboard/caption" | "/dashboard/adcopy" | "/dashboard/product" | "/dashboard/image"> = {
+  caption: "/dashboard/caption",
+  adcopy: "/dashboard/adcopy",
+  product: "/dashboard/product",
+  image: "/dashboard/image",
+};
+
+const TOOL_LABEL: Record<ToolTarget, string> = {
+  caption: "Caption",
+  adcopy: "Ad Copy",
+  product: "Product",
+  image: "Image",
+};
+
+function toSearchString(prefill: Record<string, string>) {
+  const params = new URLSearchParams(prefill);
+  params.set("from", "template");
+  return `?${params.toString()}`;
+}
 
 function TemplatesPage() {
   const [cat, setCat] = useState<Category | "All">("All");
@@ -31,7 +68,9 @@ function TemplatesPage() {
         </div>
         <div>
           <h1 className="font-display text-3xl font-bold">Prompt templates</h1>
-          <p className="text-muted-foreground">Battle-tested formulas to kickstart any piece of content.</p>
+          <p className="text-muted-foreground">
+            One-click starting points. Each opens the right tool with the fields prefilled.
+          </p>
         </div>
       </div>
 
@@ -65,16 +104,31 @@ function TemplatesPage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
                   <t.icon className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <Badge variant="secondary" className="text-[10px]">{t.category}</Badge>
+                <div className="flex flex-col items-end gap-1">
+                  <Badge variant="secondary" className="text-[10px]">
+                    {t.category}
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px]">
+                    {TOOL_LABEL[t.tool]}
+                  </Badge>
+                </div>
               </div>
               <h3 className="mt-4 font-display font-semibold">{t.name}</h3>
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{t.description}</p>
+              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                {t.description}
+              </p>
               <div className="mt-4 flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setPreview(t)}>
                   <Eye className="mr-1.5 h-3.5 w-3.5" /> Preview
                 </Button>
-                <Button asChild size="sm" className="bg-gradient-primary shadow-glow hover:opacity-90">
-                  <Link to="/dashboard/caption">Use template</Link>
+                <Button
+                  asChild
+                  size="sm"
+                  className="bg-gradient-primary shadow-glow hover:opacity-90"
+                >
+                  <a href={`${TOOL_PATH[t.tool]}${toSearchString(t.prefill)}`}>
+                    Use template
+                  </a>
                 </Button>
               </div>
             </Card>
@@ -90,18 +144,43 @@ function TemplatesPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Prompt</div>
-              <div className="rounded-lg border border-border/60 bg-accent/40 p-3 text-sm">{preview?.prompt}</div>
+              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Prompt
+              </div>
+              <div className="rounded-lg border border-border/60 bg-accent/40 p-3 text-sm">
+                {preview?.prompt}
+              </div>
             </div>
             <div>
-              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Example output</div>
-              <div className="rounded-lg border border-border/60 bg-background/60 p-3 text-sm italic">{preview?.example}</div>
+              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Example output
+              </div>
+              <div className="rounded-lg border border-border/60 bg-background/60 p-3 text-sm italic">
+                {preview?.example}
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Opens the{" "}
+              <span className="font-medium text-foreground">
+                {preview ? TOOL_LABEL[preview.tool] : ""}
+              </span>{" "}
+              tool with these fields prefilled.
             </div>
           </div>
           <DialogFooter>
-            <Button asChild className="bg-gradient-primary shadow-glow hover:opacity-90">
-              <Link to="/dashboard/caption" onClick={() => setPreview(null)}>Use this template</Link>
-            </Button>
+            {preview && (
+              <Button
+                asChild
+                className="bg-gradient-primary shadow-glow hover:opacity-90"
+              >
+                <a
+                  href={`${TOOL_PATH[preview.tool]}${toSearchString(preview.prefill)}`}
+                  onClick={() => setPreview(null)}
+                >
+                  Use this template
+                </a>
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

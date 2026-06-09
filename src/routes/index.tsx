@@ -23,6 +23,46 @@ import { SiteFooter } from "@/components/site-footer";
 import { AuroraBackground } from "@/components/aurora-background";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "ViralGen AI — Marketing content that goes viral, on demand" },
+      {
+        name: "description",
+        content:
+          "Generate scroll-stopping captions, high-converting ad copy, SEO product descriptions, and on-brand AI images in seconds. Free to start.",
+      },
+      { property: "og:title", content: "ViralGen AI — AI Marketing Content Generator" },
+      {
+        property: "og:description",
+        content:
+          "Captions, ad copy, product descriptions, and AI images — generated in seconds, tuned to your brand.",
+      },
+      { property: "og:url", content: "/" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "ViralGen AI" },
+      {
+        name: "twitter:description",
+        content: "Marketing content that goes viral, on demand.",
+      },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "ViralGen AI",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          description:
+            "AI marketing content generator for captions, ad copy, product descriptions, and images.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        }),
+      },
+    ],
+  }),
   component: Landing,
 });
 
@@ -316,6 +356,45 @@ function Landing() {
               </motion.div>
             ))}
           </motion.div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="border-t border-border/40 py-24">
+        <div className="container mx-auto max-w-3xl px-6">
+          <SectionHeader badge="FAQ" title="Frequently asked questions" />
+          <div className="mt-12 space-y-4">
+            {[
+              {
+                q: "Do I need a credit card to start?",
+                a: "No. Sign up free and ship your first 50 generations on us — no card required.",
+              },
+              {
+                q: "Will the output sound like my brand?",
+                a: "Yes. Add a short brand-voice description in Settings and every generation is tuned to that voice automatically.",
+              },
+              {
+                q: "What tools are included?",
+                a: "Captions, ad copy, product descriptions, AI image generation, favorites, history, templates, and analytics — all in one workspace.",
+              },
+              {
+                q: "Can I export or share what I generate?",
+                a: "Every result can be copied or exported as text/PDF. Images download as PNG.",
+              },
+              {
+                q: "Can I cancel anytime?",
+                a: "Yes, cancel in one click from your billing settings. Your data stays accessible on the free plan.",
+              },
+            ].map((f) => (
+              <Card
+                key={f.q}
+                className="gradient-border border-border/40 bg-gradient-card p-6 backdrop-blur"
+              >
+                <h3 className="font-display font-semibold">{f.q}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{f.a}</p>
+              </Card>
+            ))}
+          </div>
         </div>
       </section>
 

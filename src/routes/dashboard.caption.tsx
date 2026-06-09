@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,12 +25,21 @@ import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { GenerationError } from "@/components/generation-error";
 import { PromptPreview, PromptPreviewSkeleton } from "@/components/prompt-preview";
+import { PresetChips } from "@/components/preset-chips";
+import { CAPTION_PRESETS, type CaptionPreset } from "@/lib/presets";
 import { useQuery } from "@tanstack/react-query";
 import { getMyProfile } from "@/lib/profile.functions";
 import { buildCaptionPrompt } from "@/lib/prompts";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/caption")({
+  head: () => ({
+    meta: [
+      { title: "Caption Generator — ViralGen AI" },
+      { name: "description", content: "Generate scroll-stopping captions for Instagram, TikTok, X, and LinkedIn." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: CaptionTool,
 });
 
@@ -41,6 +50,25 @@ function CaptionTool() {
   const [audience, setAudience] = useState("");
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
+
+  // Prefill from URL search params (Templates page deep-links here).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("platform")) setPlatform(p.get("platform")!);
+    if (p.get("product")) setProduct(p.get("product")!);
+    if (p.get("tone")) setTone(p.get("tone")!);
+    if (p.get("audience")) setAudience(p.get("audience")!);
+    if (p.get("from") === "template") toast.success("Template applied");
+  }, []);
+
+  const applyPreset = (preset: CaptionPreset) => {
+    setPlatform(preset.platform);
+    setProduct(preset.product);
+    setTone(preset.tone);
+    setAudience(preset.audience);
+    toast.success(`Loaded "${preset.label}"`);
+  };
 
   const profileFn = useServerFn(getMyProfile);
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
@@ -78,6 +106,12 @@ function CaptionTool() {
         icon={MessageSquare}
         title="Caption Generator"
         description="Scroll-stopping captions for Instagram, TikTok, X, and LinkedIn — calibrated to your audience."
+      />
+
+      <PresetChips
+        presets={CAPTION_PRESETS}
+        onApply={applyPreset}
+        getLabel={(p) => p.label}
       />
 
       <motion.div

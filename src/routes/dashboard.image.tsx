@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ImageIcon, Sparkles, Loader2, Download, X } from "lucide-react";
@@ -22,8 +22,17 @@ import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 import { GenerationError } from "@/components/generation-error";
+import { PresetChips } from "@/components/preset-chips";
+import { IMAGE_PRESETS, type ImagePreset } from "@/lib/presets";
 
 export const Route = createFileRoute("/dashboard/image")({
+  head: () => ({
+    meta: [
+      { title: "AI Image Generator — ViralGen AI" },
+      { name: "description", content: "Generate on-brand marketing visuals from a single prompt." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ImageTool,
 });
 
@@ -79,6 +88,22 @@ function ImageTool() {
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const [lastError, setLastError] = useState<Error | null>(null);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("prompt")) setPrompt(p.get("prompt")!);
+    if (p.get("style")) setStyle(p.get("style")!);
+    if (p.get("ratio")) setRatio(p.get("ratio")!);
+    if (p.get("from") === "template") toast.success("Template applied");
+  }, []);
+
+  const applyPreset = (preset: ImagePreset) => {
+    setPrompt(preset.prompt);
+    setStyle(preset.style);
+    setRatio(preset.ratio);
+    toast.success(`Loaded "${preset.label}"`);
+  };
 
   const loading = slots.some((s) => s.loading);
 
@@ -143,6 +168,12 @@ function ImageTool() {
         icon={ImageIcon}
         title="Image Generator"
         description="Generate on-brand marketing visuals from a single prompt."
+      />
+
+      <PresetChips
+        presets={IMAGE_PRESETS}
+        onApply={applyPreset}
+        getLabel={(p) => p.label}
       />
 
       <div className="grid gap-6 lg:grid-cols-5">
