@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,12 +17,21 @@ import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { GenerationError } from "@/components/generation-error";
 import { PromptPreview, PromptPreviewSkeleton } from "@/components/prompt-preview";
+import { PresetChips } from "@/components/preset-chips";
+import { PRODUCT_PRESETS, type ProductPreset } from "@/lib/presets";
 import { useQuery } from "@tanstack/react-query";
 import { getMyProfile } from "@/lib/profile.functions";
 import { buildProductPrompt } from "@/lib/prompts";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/product")({
+  head: () => ({
+    meta: [
+      { title: "Product Description Generator — ViralGen AI" },
+      { name: "description", content: "SEO-friendly product descriptions that turn browsers into buyers." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ProductTool,
 });
 
@@ -32,6 +41,22 @@ function ProductTool() {
   const [audience, setAudience] = useState("");
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("name")) setName(p.get("name")!);
+    if (p.get("features")) setFeatures(p.get("features")!);
+    if (p.get("audience")) setAudience(p.get("audience")!);
+    if (p.get("from") === "template") toast.success("Template applied");
+  }, []);
+
+  const applyPreset = (preset: ProductPreset) => {
+    setName(preset.name);
+    setFeatures(preset.features);
+    setAudience(preset.audience);
+    toast.success(`Loaded "${preset.label}"`);
+  };
 
   const profileFn = useServerFn(getMyProfile);
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
@@ -68,6 +93,12 @@ function ProductTool() {
         icon={Package}
         title="Product Description"
         description="SEO-friendly copy that turns browsers into buyers."
+      />
+
+      <PresetChips
+        presets={PRODUCT_PRESETS}
+        onApply={applyPreset}
+        getLabel={(p) => p.label}
       />
 
       <motion.div

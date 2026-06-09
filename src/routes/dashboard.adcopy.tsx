@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,12 +24,21 @@ import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { GenerationError } from "@/components/generation-error";
 import { PromptPreview, PromptPreviewSkeleton } from "@/components/prompt-preview";
+import { PresetChips } from "@/components/preset-chips";
+import { ADCOPY_PRESETS, type AdCopyPreset } from "@/lib/presets";
 import { useQuery } from "@tanstack/react-query";
 import { getMyProfile } from "@/lib/profile.functions";
 import { buildAdCopyPrompt } from "@/lib/prompts";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 
 export const Route = createFileRoute("/dashboard/adcopy")({
+  head: () => ({
+    meta: [
+      { title: "Ad Copy Generator — ViralGen AI" },
+      { name: "description", content: "High-converting ad headlines and body copy for Meta, Google, and TikTok ads." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: AdCopyTool,
 });
 
@@ -40,6 +49,24 @@ function AdCopyTool() {
   const [tone, setTone] = useState("persuasive");
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("product")) setProduct(p.get("product")!);
+    if (p.get("audience")) setAudience(p.get("audience")!);
+    if (p.get("offer")) setOffer(p.get("offer")!);
+    if (p.get("tone")) setTone(p.get("tone")!);
+    if (p.get("from") === "template") toast.success("Template applied");
+  }, []);
+
+  const applyPreset = (preset: AdCopyPreset) => {
+    setProduct(preset.product);
+    setAudience(preset.audience);
+    setOffer(preset.offer);
+    setTone(preset.tone);
+    toast.success(`Loaded "${preset.label}"`);
+  };
 
   const profileFn = useServerFn(getMyProfile);
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
@@ -77,6 +104,12 @@ function AdCopyTool() {
         icon={Megaphone}
         title="Ad Copy Generator"
         description="High-converting headlines and body copy for Meta, Google, and TikTok ads."
+      />
+
+      <PresetChips
+        presets={ADCOPY_PRESETS}
+        onApply={applyPreset}
+        getLabel={(p) => p.label}
       />
 
       <motion.div
