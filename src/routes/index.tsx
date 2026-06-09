@@ -23,6 +23,46 @@ import { SiteFooter } from "@/components/site-footer";
 import { AuroraBackground } from "@/components/aurora-background";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "ViralGen AI — Marketing content that goes viral, on demand" },
+      {
+        name: "description",
+        content:
+          "Generate scroll-stopping captions, high-converting ad copy, SEO product descriptions, and on-brand AI images in seconds. Free to start.",
+      },
+      { property: "og:title", content: "ViralGen AI — AI Marketing Content Generator" },
+      {
+        property: "og:description",
+        content:
+          "Captions, ad copy, product descriptions, and AI images — generated in seconds, tuned to your brand.",
+      },
+      { property: "og:url", content: "/" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "ViralGen AI" },
+      {
+        name: "twitter:description",
+        content: "Marketing content that goes viral, on demand.",
+      },
+    ],
+    links: [{ rel: "canonical", href: "/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "ViralGen AI",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          description:
+            "AI marketing content generator for captions, ad copy, product descriptions, and images.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        }),
+      },
+    ],
+  }),
   component: Landing,
 });
 

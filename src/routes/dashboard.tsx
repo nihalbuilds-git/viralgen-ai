@@ -9,8 +9,15 @@ import { Bell, LogOut, Loader2, Gauge } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { UsageDialog } from "@/components/usage-dialog";
+import { OnboardingModal } from "@/components/onboarding-modal";
 
 export const Route = createFileRoute("/dashboard")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard — ViralGen AI" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: DashboardLayout,
 });
 
@@ -92,6 +99,7 @@ function DashboardLayout() {
       </div>
       <MobileTabBar />
       <UsageDialog open={usageOpen} onOpenChange={setUsageOpen} />
+      <OnboardingModal />
     </SidebarProvider>
   );
 }

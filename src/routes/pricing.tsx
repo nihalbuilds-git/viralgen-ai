@@ -11,8 +11,20 @@ export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: "Pricing — ViralGen AI" },
-      { name: "description", content: "Simple, transparent pricing for creators and teams." },
+      {
+        name: "description",
+        content:
+          "Simple, transparent pricing. Free plan, Pro for solo creators, and Team for growing companies. Cancel anytime.",
+      },
+      { property: "og:title", content: "ViralGen AI Pricing" },
+      {
+        property: "og:description",
+        content: "Plans that scale with your ambition. Start free, upgrade anytime.",
+      },
+      { property: "og:url", content: "/pricing" },
+      { property: "og:type", content: "website" },
     ],
+    links: [{ rel: "canonical", href: "/pricing" }],
   }),
   component: PricingPage,
 });

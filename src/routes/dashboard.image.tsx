@@ -170,6 +170,12 @@ function ImageTool() {
         description="Generate on-brand marketing visuals from a single prompt."
       />
 
+      <PresetChips
+        presets={IMAGE_PRESETS}
+        onApply={applyPreset}
+        getLabel={(p) => p.label}
+      />
+
       <div className="grid gap-6 lg:grid-cols-5">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
