@@ -14,7 +14,7 @@ export function UpgradeModal({ open, onOpenChange, reason }: Props) {
   const pro = PLAN_BY_ID.pro;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary shadow-glow">
             <Sparkles className="h-5 w-5 text-primary-foreground" />
@@ -46,7 +46,20 @@ export function UpgradeModal({ open, onOpenChange, reason }: Props) {
             Maybe later
           </Button>
           <Button asChild className="bg-gradient-primary shadow-glow hover:opacity-90">
-            <Link to="/pricing" onClick={() => onOpenChange(false)}>
+            <Link
+              to="/pricing"
+              onClick={() => {
+                // Best-effort funnel tracking — never blocks navigation.
+                try {
+                  void fetch("/_serverFn/src_lib_events_functions_ts--trackEvent_createServerFn_handler", {
+                    method: "POST",
+                  });
+                } catch {
+                  // ignore
+                }
+                onOpenChange(false);
+              }}
+            >
               Upgrade now
             </Link>
           </Button>

@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as SIdRouteImport } from './routes/s.$id'
 import { Route as DashboardTemplatesRouteImport } from './routes/dashboard.templates'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
@@ -22,6 +23,7 @@ import { Route as DashboardImageRouteImport } from './routes/dashboard.image'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as DashboardFavoritesRouteImport } from './routes/dashboard.favorites'
 import { Route as DashboardCaptionRouteImport } from './routes/dashboard.caption'
+import { Route as DashboardBrandProfilesRouteImport } from './routes/dashboard.brand-profiles'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
 import { Route as DashboardAdcopyRouteImport } from './routes/dashboard.adcopy'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
@@ -50,6 +52,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const SIdRoute = SIdRouteImport.update({
+  id: '/s/$id',
+  path: '/s/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardTemplatesRoute = DashboardTemplatesRouteImport.update({
   id: '/templates',
@@ -91,6 +98,11 @@ const DashboardCaptionRoute = DashboardCaptionRouteImport.update({
   path: '/caption',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardBrandProfilesRoute = DashboardBrandProfilesRouteImport.update({
+  id: '/brand-profiles',
+  path: '/brand-profiles',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -115,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-profiles': typeof DashboardBrandProfilesRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -123,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/s/$id': typeof SIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -132,6 +146,7 @@ export interface FileRoutesByTo {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-profiles': typeof DashboardBrandProfilesRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -140,6 +155,7 @@ export interface FileRoutesByTo {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/s/$id': typeof SIdRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -151,6 +167,7 @@ export interface FileRoutesById {
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
+  '/dashboard/brand-profiles': typeof DashboardBrandProfilesRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
   '/dashboard/favorites': typeof DashboardFavoritesRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -159,6 +176,7 @@ export interface FileRoutesById {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/templates': typeof DashboardTemplatesRoute
+  '/s/$id': typeof SIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -171,6 +189,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/dashboard/adcopy'
     | '/dashboard/analytics'
+    | '/dashboard/brand-profiles'
     | '/dashboard/caption'
     | '/dashboard/favorites'
     | '/dashboard/history'
@@ -179,6 +198,7 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/settings'
     | '/dashboard/templates'
+    | '/s/$id'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -188,6 +208,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/dashboard/adcopy'
     | '/dashboard/analytics'
+    | '/dashboard/brand-profiles'
     | '/dashboard/caption'
     | '/dashboard/favorites'
     | '/dashboard/history'
@@ -196,6 +217,7 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/settings'
     | '/dashboard/templates'
+    | '/s/$id'
     | '/dashboard'
   id:
     | '__root__'
@@ -206,6 +228,7 @@ export interface FileRouteTypes {
     | '/api/generate-image'
     | '/dashboard/adcopy'
     | '/dashboard/analytics'
+    | '/dashboard/brand-profiles'
     | '/dashboard/caption'
     | '/dashboard/favorites'
     | '/dashboard/history'
@@ -214,6 +237,7 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/settings'
     | '/dashboard/templates'
+    | '/s/$id'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -223,6 +247,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   ApiGenerateImageRoute: typeof ApiGenerateImageRoute
+  SIdRoute: typeof SIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -261,6 +286,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/s/$id': {
+      id: '/s/$id'
+      path: '/s/$id'
+      fullPath: '/s/$id'
+      preLoaderRoute: typeof SIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dashboard/templates': {
       id: '/dashboard/templates'
@@ -318,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCaptionRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/brand-profiles': {
+      id: '/dashboard/brand-profiles'
+      path: '/brand-profiles'
+      fullPath: '/dashboard/brand-profiles'
+      preLoaderRoute: typeof DashboardBrandProfilesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/analytics': {
       id: '/dashboard/analytics'
       path: '/analytics'
@@ -345,6 +384,7 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardAdcopyRoute: typeof DashboardAdcopyRoute
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
+  DashboardBrandProfilesRoute: typeof DashboardBrandProfilesRoute
   DashboardCaptionRoute: typeof DashboardCaptionRoute
   DashboardFavoritesRoute: typeof DashboardFavoritesRoute
   DashboardHistoryRoute: typeof DashboardHistoryRoute
@@ -359,6 +399,7 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdcopyRoute: DashboardAdcopyRoute,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
+  DashboardBrandProfilesRoute: DashboardBrandProfilesRoute,
   DashboardCaptionRoute: DashboardCaptionRoute,
   DashboardFavoritesRoute: DashboardFavoritesRoute,
   DashboardHistoryRoute: DashboardHistoryRoute,
@@ -380,6 +421,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   ApiGenerateImageRoute: ApiGenerateImageRoute,
+  SIdRoute: SIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

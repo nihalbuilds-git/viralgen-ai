@@ -3,26 +3,13 @@ import { z } from "zod";
 import { callLovableAIJson } from "./ai-gateway.server";
 import { assertUsageAvailable } from "./usage.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { resolveBrandVoice } from "./brand-profiles.functions";
 import {
   buildAdCopyPrompt,
   buildCaptionPrompt,
   buildProductPrompt,
   type AdCopyVars,
 } from "./prompts";
-
-async function getBrandVoice(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  supabase: any,
-  userId: string,
-) {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("brand_voice")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  return typeof data?.brand_voice === "string" ? data.brand_voice : "";
-}
 
 async function saveGenerationRow(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,12 +37,39 @@ async function saveGenerationRow(
   return data;
 }
 
+async function trackGenerationEvent(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+  type: string,
+) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { count } = await (supabase as any)
+      .from("analytics_events")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("event", "generation_completed");
+    const isFirst = (count ?? 0) === 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).from("analytics_events").insert([
+      { user_id: userId, event: "generation_completed", properties: { type } },
+      ...(isFirst
+        ? [{ user_id: userId, event: "first_generation", properties: { type } }]
+        : []),
+    ]);
+  } catch {
+    // analytics is best-effort; never block a generation
+  }
+}
+
 // ---------- Captions ----------
 const CaptionInput = z.object({
   platform: z.string().min(1).max(50),
   product: z.string().min(1).max(500),
   tone: z.string().min(1).max(50),
   audience: z.string().min(1).max(200),
+  brandProfileId: z.string().uuid().nullable().optional(),
 });
 
 export const generateCaptionsFn = createServerFn({ method: "POST" })
@@ -63,7 +77,11 @@ export const generateCaptionsFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => CaptionInput.parse(d))
   .handler(async ({ data, context }) => {
     await assertUsageAvailable(context.supabase, context.userId, "text");
-    const brandVoice = await getBrandVoice(context.supabase, context.userId);
+    const brandVoice = await resolveBrandVoice(
+      context.supabase,
+      context.userId,
+      data.brandProfileId ?? null,
+    );
     const { system, user } = buildCaptionPrompt(data, brandVoice);
     const result = await callLovableAIJson<{ captions: string[] }>({
       messages: [
@@ -81,6 +99,7 @@ export const generateCaptionsFn = createServerFn({ method: "POST" })
       input: data,
       output: { captions },
     });
+    void trackGenerationEvent(context.supabase, context.userId, "caption");
     return { captions, generationId: saved.id };
   });
 
@@ -90,6 +109,7 @@ const AdCopyInput = z.object({
   audience: z.string().min(1).max(200),
   offer: z.string().min(1).max(300),
   tone: z.string().min(1).max(50),
+  brandProfileId: z.string().uuid().nullable().optional(),
 });
 
 export type AdCopyResult = { headline: string; primaryText: string; cta: string };
@@ -99,7 +119,11 @@ export const generateAdCopyFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => AdCopyInput.parse(d))
   .handler(async ({ data, context }) => {
     await assertUsageAvailable(context.supabase, context.userId, "text");
-    const brandVoice = await getBrandVoice(context.supabase, context.userId);
+    const brandVoice = await resolveBrandVoice(
+      context.supabase,
+      context.userId,
+      data.brandProfileId ?? null,
+    );
     const { system, user } = buildAdCopyPrompt(data as AdCopyVars, brandVoice);
     const result = await callLovableAIJson<AdCopyResult>({
       messages: [
@@ -116,6 +140,7 @@ export const generateAdCopyFn = createServerFn({ method: "POST" })
       input: data,
       output: result,
     });
+    void trackGenerationEvent(context.supabase, context.userId, "adcopy");
     return { ...result, generationId: saved.id };
   });
 
@@ -124,6 +149,7 @@ const ProductInput = z.object({
   name: z.string().min(1).max(200),
   features: z.string().min(1).max(1000),
   audience: z.string().min(1).max(200),
+  brandProfileId: z.string().uuid().nullable().optional(),
 });
 
 export const generateProductDescriptionFn = createServerFn({ method: "POST" })
@@ -131,7 +157,11 @@ export const generateProductDescriptionFn = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ProductInput.parse(d))
   .handler(async ({ data, context }) => {
     await assertUsageAvailable(context.supabase, context.userId, "text");
-    const brandVoice = await getBrandVoice(context.supabase, context.userId);
+    const brandVoice = await resolveBrandVoice(
+      context.supabase,
+      context.userId,
+      data.brandProfileId ?? null,
+    );
     const { system, user } = buildProductPrompt(data, brandVoice);
     const result = await callLovableAIJson<{ description: string }>({
       messages: [
@@ -146,5 +176,6 @@ export const generateProductDescriptionFn = createServerFn({ method: "POST" })
       input: data,
       output: result,
     });
+    void trackGenerationEvent(context.supabase, context.userId, "product");
     return { description: result.description, generationId: saved.id };
   });
