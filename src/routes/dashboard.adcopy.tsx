@@ -19,15 +19,18 @@ import {
 } from "@/components/ui/select";
 import { generateAdCopyFn } from "@/lib/ai.functions";
 import { FavoriteButton } from "@/components/favorite-button";
+import { ShareButton } from "@/components/share-button";
 import { CopyButton } from "@/components/copy-button";
 import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { GenerationError } from "@/components/generation-error";
 import { PromptPreview, PromptPreviewSkeleton } from "@/components/prompt-preview";
 import { PresetChips } from "@/components/preset-chips";
+import { BrandProfileSelect } from "@/components/brand-profile-select";
 import { ADCOPY_PRESETS, type AdCopyPreset } from "@/lib/presets";
 import { useQuery } from "@tanstack/react-query";
 import { getMyProfile } from "@/lib/profile.functions";
+import { listBrandProfiles } from "@/lib/brand-profiles.functions";
 import { buildAdCopyPrompt } from "@/lib/prompts";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 
@@ -47,6 +50,7 @@ function AdCopyTool() {
   const [audience, setAudience] = useState("");
   const [offer, setOffer] = useState("");
   const [tone, setTone] = useState("persuasive");
+  const [brandProfileId, setBrandProfileId] = useState<string | null>(null);
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
 
@@ -70,13 +74,24 @@ function AdCopyTool() {
 
   const profileFn = useServerFn(getMyProfile);
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
-  const brandVoice = profile?.brand_voice ?? "";
+  const bpFn = useServerFn(listBrandProfiles);
+  const { data: brandProfiles } = useQuery({ queryKey: ["brand-profiles"], queryFn: () => bpFn() });
+  const selectedProfileVoice =
+    brandProfileId && brandProfiles
+      ? brandProfiles.find((p) => p.id === brandProfileId)?.voice ?? ""
+      : "";
+  const brandVoice = selectedProfileVoice || (profile?.brand_voice ?? "");
   const fieldsReady = product.trim() && audience.trim() && offer.trim();
 
   const fn = useServerFn(generateAdCopyFn);
   const mutation = useMutation({
-    mutationFn: (vars: { product: string; audience: string; offer: string; tone: string }) =>
-      fn({ data: vars }),
+    mutationFn: (vars: {
+      product: string;
+      audience: string;
+      offer: string;
+      tone: string;
+      brandProfileId: string | null;
+    }) => fn({ data: vars }),
     onError: (e: Error) => {
       const limitMessage = getUsageLimitMessage(e);
       if (limitMessage) setUpgradeReason(limitMessage);
@@ -95,7 +110,7 @@ function AdCopyTool() {
       toast.error("Please fill in product, audience, and offer");
       return;
     }
-    mutation.mutate({ product, audience, offer, tone });
+    mutation.mutate({ product, audience, offer, tone, brandProfileId });
   };
 
   return (
@@ -178,7 +193,8 @@ function AdCopyTool() {
               )}
               {mutation.isPending ? "Generating…" : "Generate ad copy"}
             </Button>
-          </div>
+            </div>
+            <BrandProfileSelect value={brandProfileId} onChange={setBrandProfileId} />
         </Card>
       </motion.div>
 
