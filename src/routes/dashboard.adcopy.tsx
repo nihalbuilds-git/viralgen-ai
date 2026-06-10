@@ -230,7 +230,10 @@ function AdCopyTool() {
           >
             <div className="flex items-center justify-between">
               <h2 className="font-display text-lg font-semibold tracking-tight">Results</h2>
-              <FavoriteButton generationId={mutation.data.generationId} />
+              <div className="flex gap-1">
+                <FavoriteButton generationId={mutation.data.generationId} />
+                <ShareButton generationId={mutation.data.generationId} />
+              </div>
             </div>
             <ResultBlock index={0} label="Headline" value={mutation.data.headline} />
             <ResultBlock index={1} label="Primary text" value={mutation.data.primaryText} />
