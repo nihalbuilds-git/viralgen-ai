@@ -2,7 +2,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Sparkles, Check } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect } from "react";
 import { PLAN_BY_ID } from "@/lib/plans";
+import { trackEvent } from "@/lib/events.functions";
 
 interface Props {
   open: boolean;
@@ -12,6 +15,23 @@ interface Props {
 
 export function UpgradeModal({ open, onOpenChange, reason }: Props) {
   const pro = PLAN_BY_ID.pro;
+  const track = useServerFn(trackEvent);
+
+  // Fire a funnel event when the upgrade modal is shown.
+  useEffect(() => {
+    if (!open) return;
+    void track({ data: { event: "upgrade_modal_viewed", properties: { reason } } }).catch(
+      () => undefined,
+    );
+  }, [open, reason, track]);
+
+  const handleUpgradeClick = () => {
+    void track({ data: { event: "upgrade_click", properties: { source: "modal" } } }).catch(
+      () => undefined,
+    );
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
@@ -46,20 +66,7 @@ export function UpgradeModal({ open, onOpenChange, reason }: Props) {
             Maybe later
           </Button>
           <Button asChild className="bg-gradient-primary shadow-glow hover:opacity-90">
-            <Link
-              to="/pricing"
-              onClick={() => {
-                // Best-effort funnel tracking — never blocks navigation.
-                try {
-                  void fetch("/_serverFn/src_lib_events_functions_ts--trackEvent_createServerFn_handler", {
-                    method: "POST",
-                  });
-                } catch {
-                  // ignore
-                }
-                onOpenChange(false);
-              }}
-            >
+            <Link to="/pricing" onClick={handleUpgradeClick}>
               Upgrade now
             </Link>
           </Button>
