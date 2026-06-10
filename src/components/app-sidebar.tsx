@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, MessageSquare, Megaphone, Package, ImageIcon,
-  User, Sparkles, CreditCard, History, Star, BarChart3, Settings, LayoutTemplate,
+  User, Sparkles, CreditCard, History, Star, BarChart3, Settings, LayoutTemplate, Users,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
@@ -25,6 +25,7 @@ const aiTools = [
 ];
 
 const account = [
+  { title: "Brand Profiles", url: "/dashboard/brand-profiles", icon: Users },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
   { title: "Profile", url: "/dashboard/profile", icon: User },
   { title: "Pricing", url: "/pricing", icon: CreditCard },

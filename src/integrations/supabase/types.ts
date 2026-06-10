@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          created_at: string
+          event: string
+          id: string
+          properties: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          id?: string
+          properties?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          id?: string
+          properties?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      brand_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+          user_id: string
+          voice: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+          voice?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+          voice?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -48,6 +102,7 @@ export type Database = {
           created_at: string
           id: string
           input: Json
+          is_public: boolean
           output: Json
           title: string
           type: Database["public"]["Enums"]["generation_type"]
@@ -57,6 +112,7 @@ export type Database = {
           created_at?: string
           id?: string
           input?: Json
+          is_public?: boolean
           output?: Json
           title: string
           type: Database["public"]["Enums"]["generation_type"]
@@ -66,6 +122,7 @@ export type Database = {
           created_at?: string
           id?: string
           input?: Json
+          is_public?: boolean
           output?: Json
           title?: string
           type?: Database["public"]["Enums"]["generation_type"]

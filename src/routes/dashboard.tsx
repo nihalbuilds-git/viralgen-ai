@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { UsageDialog } from "@/components/usage-dialog";
 import { OnboardingModal } from "@/components/onboarding-modal";
+import { UsageWarningWatcher } from "@/hooks/use-usage-warning";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -100,6 +101,7 @@ function DashboardLayout() {
       <MobileTabBar />
       <UsageDialog open={usageOpen} onOpenChange={setUsageOpen} />
       <OnboardingModal />
+      <UsageWarningWatcher />
     </SidebarProvider>
   );
 }
