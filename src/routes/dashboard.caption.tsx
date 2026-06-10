@@ -21,14 +21,17 @@ import {
 } from "@/components/ui/select";
 import { generateCaptionsFn } from "@/lib/ai.functions";
 import { FavoriteButton } from "@/components/favorite-button";
+import { ShareButton } from "@/components/share-button";
 import { ToolHeader } from "@/components/tool-header";
 import { UpgradeModal } from "@/components/upgrade-modal";
 import { GenerationError } from "@/components/generation-error";
 import { PromptPreview, PromptPreviewSkeleton } from "@/components/prompt-preview";
 import { PresetChips } from "@/components/preset-chips";
+import { BrandProfileSelect } from "@/components/brand-profile-select";
 import { CAPTION_PRESETS, type CaptionPreset } from "@/lib/presets";
 import { useQuery } from "@tanstack/react-query";
 import { getMyProfile } from "@/lib/profile.functions";
+import { listBrandProfiles } from "@/lib/brand-profiles.functions";
 import { buildCaptionPrompt } from "@/lib/prompts";
 import { getUsageLimitMessage } from "@/lib/usage-errors";
 
@@ -48,6 +51,7 @@ function CaptionTool() {
   const [product, setProduct] = useState("");
   const [tone, setTone] = useState("engaging");
   const [audience, setAudience] = useState("");
+  const [brandProfileId, setBrandProfileId] = useState<string | null>(null);
   const [upgradeReason, setUpgradeReason] = useState<string | null>(null);
   const qc = useQueryClient();
 
@@ -72,13 +76,24 @@ function CaptionTool() {
 
   const profileFn = useServerFn(getMyProfile);
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: () => profileFn() });
-  const brandVoice = profile?.brand_voice ?? "";
+  const bpFn = useServerFn(listBrandProfiles);
+  const { data: brandProfiles } = useQuery({ queryKey: ["brand-profiles"], queryFn: () => bpFn() });
+  const selectedProfileVoice =
+    brandProfileId && brandProfiles
+      ? brandProfiles.find((p) => p.id === brandProfileId)?.voice ?? ""
+      : "";
+  const brandVoice = selectedProfileVoice || (profile?.brand_voice ?? "");
   const fieldsReady = product.trim().length > 0 && audience.trim().length > 0;
 
   const fn = useServerFn(generateCaptionsFn);
   const mutation = useMutation({
-    mutationFn: (vars: { platform: string; product: string; tone: string; audience: string }) =>
-      fn({ data: vars }),
+    mutationFn: (vars: {
+      platform: string;
+      product: string;
+      tone: string;
+      audience: string;
+      brandProfileId: string | null;
+    }) => fn({ data: vars }),
     onError: (e: Error) => {
       const limitMessage = getUsageLimitMessage(e);
       if (limitMessage) setUpgradeReason(limitMessage);
@@ -97,7 +112,7 @@ function CaptionTool() {
       toast.error("Please fill in product and audience");
       return;
     }
-    mutation.mutate({ platform, product, tone, audience });
+    mutation.mutate({ platform, product, tone, audience, brandProfileId });
   };
 
   return (
@@ -173,6 +188,7 @@ function CaptionTool() {
                 placeholder="e.g. Busy freelancers in their 30s"
               />
             </div>
+            <BrandProfileSelect value={brandProfileId} onChange={setBrandProfileId} />
             <Button
               onClick={handle}
               disabled={mutation.isPending}
@@ -238,6 +254,7 @@ function CaptionTool() {
                     </div>
                     <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
                       {i === 0 && <FavoriteButton generationId={mutation.data?.generationId} />}
+                      {i === 0 && <ShareButton generationId={mutation.data?.generationId} />}
                       <CopyButton text={c} />
                       <ExportButtons
                         filename={`caption-${i + 1}`}
