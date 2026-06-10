@@ -154,6 +154,7 @@ function ProductTool() {
                 rows={4}
               />
             </div>
+            <BrandProfileSelect value={brandProfileId} onChange={setBrandProfileId} />
             <Button
               onClick={handle}
               disabled={mutation.isPending}
@@ -207,6 +208,7 @@ function ProductTool() {
                 </p>
                 <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
                   <FavoriteButton generationId={mutation.data.generationId} />
+                  <ShareButton generationId={mutation.data.generationId} />
                   <CopyButton text={mutation.data.description} />
                 </div>
               </div>
