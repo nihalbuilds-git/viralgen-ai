@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertUsageAvailable, getUsageSummary } from "./usage.server";
+import { assertRateLimit, assertUsageAvailable, getUsageSummary } from "./usage.server";
+import { computeViralScore } from "./viral-score";
+import { outputToText } from "./export";
 
 const TypeEnum = z.enum(["caption", "adcopy", "product", "image"]);
 
@@ -41,7 +43,11 @@ export const saveGeneration = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => SaveInput.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    await assertUsageAvailable(supabase, userId, data.type === "image" ? "image" : "text");
+    const kind = data.type === "image" ? "image" : "text";
+    await assertRateLimit(supabase, userId, kind);
+    await assertUsageAvailable(supabase, userId, kind);
+    const viralScore =
+      data.type === "image" ? null : computeViralScore(outputToText(data.output));
     const { data: row, error } = await supabase
       .from("generations")
       .insert({
@@ -50,6 +56,7 @@ export const saveGeneration = createServerFn({ method: "POST" })
         title: data.title,
         input: data.input as never,
         output: data.output as never,
+        viral_score: viralScore,
       })
       .select()
       .single();
@@ -185,7 +192,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
 
     const { data, error } = await supabase
       .from("generations")
-      .select("type, title, output, created_at")
+      .select("type, title, output, created_at, viral_score")
       .eq("user_id", userId)
       .gte("created_at", since.toISOString())
       .order("created_at", { ascending: true })
@@ -207,12 +214,18 @@ export const getAnalytics = createServerFn({ method: "GET" })
     });
 
     let totalWords = 0;
+    let scoreSum = 0;
+    let scoreCount = 0;
     for (const row of rows) {
       byType[row.type] = (byType[row.type] ?? 0) + 1;
       const words = JSON.stringify(row.output ?? {})
         .split(/\s+/)
         .filter(Boolean).length;
       totalWords += words;
+      if (typeof row.viral_score === "number") {
+        scoreSum += row.viral_score;
+        scoreCount += 1;
+      }
       const key = new Date(row.created_at).toISOString().slice(0, 10);
       const day = daily.find((item) => item.key === key);
       if (day) {
@@ -223,11 +236,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
 
     const totals = Object.entries(byType).map(([name, value]) => ({ name, value }));
     const totalGenerations = rows.length;
-    const avgViral = totalGenerations
-      ? Math.round(
-          rows.reduce((sum, row) => sum + 60 + ((row.title.length * 7) % 40), 0) / totalGenerations,
-        )
-      : 0;
+    const avgViral = scoreCount ? Math.round(scoreSum / scoreCount) : 0;
 
     return {
       totals,

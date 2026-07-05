@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { assertUsageAvailable } from "@/lib/usage.server";
+import { assertRateLimit, assertUsageAvailable, RateLimitError } from "@/lib/usage.server";
 import type { Database } from "@/integrations/supabase/types";
 
 const ImageRequest = z.object({
@@ -42,8 +42,15 @@ export const Route = createFileRoute("/api/generate-image")({
         if (!parsed.success) return new Response("Prompt required", { status: 400 });
 
         try {
+          await assertRateLimit(supabase, userId, "image");
           await assertUsageAvailable(supabase, userId, "image");
         } catch (error) {
+          if (error instanceof RateLimitError) {
+            return new Response(error.message, {
+              status: 429,
+              headers: { "Retry-After": String(error.retryAfterSeconds) },
+            });
+          }
           return new Response(error instanceof Error ? error.message : "Usage limit reached", {
             status: 402,
           });

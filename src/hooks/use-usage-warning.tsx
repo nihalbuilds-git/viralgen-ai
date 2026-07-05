@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { getMyUsage } from "@/lib/generations.functions";
 
@@ -13,6 +13,7 @@ const SESSION_KEY_PREFIX = "viralgen_usage_warned_";
 // hitting a hard limit.
 export function useUsageWarning() {
   const fn = useServerFn(getMyUsage);
+  const navigate = useNavigate();
   const { data } = useQuery({
     queryKey: ["usage"],
     queryFn: () => fn(),
@@ -37,7 +38,7 @@ export function useUsageWarning() {
           action: {
             label: "View plans",
             onClick: () => {
-              window.location.href = "/pricing";
+              navigate({ to: "/pricing" });
             },
           },
           duration: 8000,
@@ -46,7 +47,7 @@ export function useUsageWarning() {
     };
     check("text", data.textUsed, data.plan.monthlyGenerations);
     check("image", data.imageUsed, data.plan.monthlyImages);
-  }, [data]);
+  }, [data, navigate]);
 }
 
 // Wrapper component so the hook can be mounted from any layout.
@@ -57,3 +58,4 @@ export function UsageWarningWatcher() {
 
 // Re-export Link so consumers don't add an extra import.
 export { Link };
+

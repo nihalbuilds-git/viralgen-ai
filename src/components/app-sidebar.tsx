@@ -1,13 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   LayoutDashboard, MessageSquare, Megaphone, Package, ImageIcon,
-  User, Sparkles, CreditCard, History, Star, BarChart3, Settings, LayoutTemplate, Users,
+  User, Sparkles, CreditCard, History, Star, BarChart3, Settings, LayoutTemplate, Users, Shield,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar";
+import { getIsAdmin } from "@/lib/admin.functions";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -35,6 +38,12 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const isAdminFn = useServerFn(getIsAdmin);
+  const { data: adminGate } = useQuery({
+    queryKey: ["admin", "is-admin"],
+    queryFn: () => isAdminFn(),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const isActive = (url: string) =>
     url === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(url);
@@ -104,6 +113,10 @@ export function AppSidebar() {
         {renderGroup("Workspace", mainItems)}
         {renderGroup("AI Tools", aiTools)}
         {renderGroup("Account", account)}
+        {adminGate?.isAdmin &&
+          renderGroup("Admin", [
+            { title: "Operations", url: "/dashboard/admin", icon: Shield },
+          ])}
       </SidebarContent>
     </Sidebar>
   );

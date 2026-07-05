@@ -1,6 +1,7 @@
 import { PLAN_BY_ID, type PlanId } from "./plans";
 
 export const USAGE_LIMIT_CODE = "USAGE_LIMIT_REACHED";
+export const RATE_LIMIT_CODE = "RATE_LIMIT_EXCEEDED";
 
 export type GenerationKind = "text" | "image";
 
@@ -12,6 +13,53 @@ export class UsageLimitError extends Error {
     super(`${USAGE_LIMIT_CODE}: ${message}`);
     this.name = "UsageLimitError";
   }
+}
+
+export class RateLimitError extends Error {
+  code = RATE_LIMIT_CODE;
+  status = 429;
+  retryAfterSeconds: number;
+
+  constructor(retryAfterSeconds: number, message?: string) {
+    super(
+      `${RATE_LIMIT_CODE}: ${
+        message ??
+        `You're generating too quickly. Try again in ${retryAfterSeconds}s.`
+      }`,
+    );
+    this.name = "RateLimitError";
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+// Per-user, per-bucket rolling window rate limit backed by the
+// `consume_rate_limit` Postgres function (atomic upsert + counter).
+// Called on every generation endpoint so a runaway client can't hammer
+// the AI gateway even when their monthly quota still has room.
+export const RATE_BUCKETS = {
+  text: { bucket: "generate:text", max: 12, windowSeconds: 60 },
+  image: { bucket: "generate:image", max: 4, windowSeconds: 60 },
+} as const;
+
+export async function assertRateLimit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+  kind: GenerationKind,
+) {
+  const cfg = RATE_BUCKETS[kind];
+  const { data, error } = await supabase.rpc("consume_rate_limit", {
+    _user_id: userId,
+    _bucket: cfg.bucket,
+    _max_count: cfg.max,
+    _window_seconds: cfg.windowSeconds,
+  });
+  if (error) throw new Error(error.message);
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row?.allowed) {
+    throw new RateLimitError(row?.retry_after_seconds ?? cfg.windowSeconds);
+  }
+  return { remaining: row.remaining as number };
 }
 
 function currentPeriodStart() {
