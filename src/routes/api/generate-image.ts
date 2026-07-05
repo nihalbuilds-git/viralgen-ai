@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { assertUsageAvailable } from "@/lib/usage.server";
+import { assertRateLimit, assertUsageAvailable, RateLimitError } from "@/lib/usage.server";
 import type { Database } from "@/integrations/supabase/types";
 
 const ImageRequest = z.object({
