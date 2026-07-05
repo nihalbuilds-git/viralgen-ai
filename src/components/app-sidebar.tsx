@@ -1,13 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   LayoutDashboard, MessageSquare, Megaphone, Package, ImageIcon,
-  User, Sparkles, CreditCard, History, Star, BarChart3, Settings, LayoutTemplate, Users,
+  User, Sparkles, CreditCard, History, Star, BarChart3, Settings, LayoutTemplate, Users, Shield,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar";
+import { getIsAdmin } from "@/lib/admin.functions";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },

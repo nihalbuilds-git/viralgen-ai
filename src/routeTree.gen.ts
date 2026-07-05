@@ -25,6 +25,7 @@ import { Route as DashboardFavoritesRouteImport } from './routes/dashboard.favor
 import { Route as DashboardCaptionRouteImport } from './routes/dashboard.caption'
 import { Route as DashboardBrandProfilesRouteImport } from './routes/dashboard.brand-profiles'
 import { Route as DashboardAnalyticsRouteImport } from './routes/dashboard.analytics'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 import { Route as DashboardAdcopyRouteImport } from './routes/dashboard.adcopy'
 import { Route as ApiGenerateImageRouteImport } from './routes/api/generate-image'
 
@@ -108,6 +109,11 @@ const DashboardAnalyticsRoute = DashboardAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAdcopyRoute = DashboardAdcopyRouteImport.update({
   id: '/adcopy',
   path: '/adcopy',
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-profiles': typeof DashboardBrandProfilesRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-profiles': typeof DashboardBrandProfilesRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/api/generate-image': typeof ApiGenerateImageRoute
   '/dashboard/adcopy': typeof DashboardAdcopyRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/analytics': typeof DashboardAnalyticsRoute
   '/dashboard/brand-profiles': typeof DashboardBrandProfilesRoute
   '/dashboard/caption': typeof DashboardCaptionRoute
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/api/generate-image'
     | '/dashboard/adcopy'
+    | '/dashboard/admin'
     | '/dashboard/analytics'
     | '/dashboard/brand-profiles'
     | '/dashboard/caption'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/api/generate-image'
     | '/dashboard/adcopy'
+    | '/dashboard/admin'
     | '/dashboard/analytics'
     | '/dashboard/brand-profiles'
     | '/dashboard/caption'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/api/generate-image'
     | '/dashboard/adcopy'
+    | '/dashboard/admin'
     | '/dashboard/analytics'
     | '/dashboard/brand-profiles'
     | '/dashboard/caption'
@@ -364,6 +376,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/adcopy': {
       id: '/dashboard/adcopy'
       path: '/adcopy'
@@ -383,6 +402,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardAdcopyRoute: typeof DashboardAdcopyRoute
+  DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardAnalyticsRoute: typeof DashboardAnalyticsRoute
   DashboardBrandProfilesRoute: typeof DashboardBrandProfilesRoute
   DashboardCaptionRoute: typeof DashboardCaptionRoute
@@ -398,6 +418,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAdcopyRoute: DashboardAdcopyRoute,
+  DashboardAdminRoute: DashboardAdminRoute,
   DashboardAnalyticsRoute: DashboardAnalyticsRoute,
   DashboardBrandProfilesRoute: DashboardBrandProfilesRoute,
   DashboardCaptionRoute: DashboardCaptionRoute,
