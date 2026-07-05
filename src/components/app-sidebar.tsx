@@ -113,6 +113,10 @@ export function AppSidebar() {
         {renderGroup("Workspace", mainItems)}
         {renderGroup("AI Tools", aiTools)}
         {renderGroup("Account", account)}
+        {adminGate?.isAdmin &&
+          renderGroup("Admin", [
+            { title: "Operations", url: "/dashboard/admin", icon: Shield },
+          ])}
       </SidebarContent>
     </Sidebar>
   );
