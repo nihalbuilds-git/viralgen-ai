@@ -213,7 +213,7 @@ function HistoryPage() {
           <div className="space-y-3">
             {filtered.map((g) => {
               const text = outputToText(g.output);
-              const score = 60 + ((g.title.length * 7) % 40);
+              const score = typeof g.viral_score === "number" ? g.viral_score : null;
               const imageUrl =
                 g.output && typeof g.output === "object" && "imageUrl" in g.output
                   ? String((g.output as Record<string, unknown>).imageUrl ?? "")
@@ -234,9 +234,11 @@ function HistoryPage() {
                           <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-medium capitalize text-accent-foreground">
                             {g.type}
                           </span>
-                          <Badge variant="outline" className="text-xs">
-                            Viral {score}
-                          </Badge>
+                          {score !== null && (
+                            <Badge variant="outline" className="text-xs">
+                              Viral {score}
+                            </Badge>
+                          )}
                           <span className="text-xs text-muted-foreground">
                             {new Date(g.created_at).toLocaleString()}
                           </span>
