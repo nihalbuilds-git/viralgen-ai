@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { assertUsageAvailable, getUsageSummary } from "./usage.server";
+import { assertRateLimit, assertUsageAvailable, getUsageSummary } from "./usage.server";
+import { computeViralScore } from "./viral-score";
+import { outputToText } from "./export";
 
 const TypeEnum = z.enum(["caption", "adcopy", "product", "image"]);
 
