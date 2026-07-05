@@ -43,7 +43,11 @@ export const saveGeneration = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => SaveInput.parse(d))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    await assertUsageAvailable(supabase, userId, data.type === "image" ? "image" : "text");
+    const kind = data.type === "image" ? "image" : "text";
+    await assertRateLimit(supabase, userId, kind);
+    await assertUsageAvailable(supabase, userId, kind);
+    const viralScore =
+      data.type === "image" ? null : computeViralScore(outputToText(data.output));
     const { data: row, error } = await supabase
       .from("generations")
       .insert({
@@ -52,6 +56,7 @@ export const saveGeneration = createServerFn({ method: "POST" })
         title: data.title,
         input: data.input as never,
         output: data.output as never,
+        viral_score: viralScore,
       })
       .select()
       .single();
