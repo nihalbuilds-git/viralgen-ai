@@ -38,6 +38,12 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
+  const isAdminFn = useServerFn(getIsAdmin);
+  const { data: adminGate } = useQuery({
+    queryKey: ["admin", "is-admin"],
+    queryFn: () => isAdminFn(),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const isActive = (url: string) =>
     url === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(url);
