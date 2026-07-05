@@ -192,7 +192,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
 
     const { data, error } = await supabase
       .from("generations")
-      .select("type, title, output, created_at")
+      .select("type, title, output, created_at, viral_score")
       .eq("user_id", userId)
       .gte("created_at", since.toISOString())
       .order("created_at", { ascending: true })
@@ -214,12 +214,18 @@ export const getAnalytics = createServerFn({ method: "GET" })
     });
 
     let totalWords = 0;
+    let scoreSum = 0;
+    let scoreCount = 0;
     for (const row of rows) {
       byType[row.type] = (byType[row.type] ?? 0) + 1;
       const words = JSON.stringify(row.output ?? {})
         .split(/\s+/)
         .filter(Boolean).length;
       totalWords += words;
+      if (typeof row.viral_score === "number") {
+        scoreSum += row.viral_score;
+        scoreCount += 1;
+      }
       const key = new Date(row.created_at).toISOString().slice(0, 10);
       const day = daily.find((item) => item.key === key);
       if (day) {
@@ -230,11 +236,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
 
     const totals = Object.entries(byType).map(([name, value]) => ({ name, value }));
     const totalGenerations = rows.length;
-    const avgViral = totalGenerations
-      ? Math.round(
-          rows.reduce((sum, row) => sum + 60 + ((row.title.length * 7) % 40), 0) / totalGenerations,
-        )
-      : 0;
+    const avgViral = scoreCount ? Math.round(scoreSum / scoreCount) : 0;
 
     return {
       totals,
