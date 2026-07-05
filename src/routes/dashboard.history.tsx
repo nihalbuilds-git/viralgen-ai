@@ -85,7 +85,7 @@ function HistoryPage() {
     if (toTs !== null) rows = rows.filter((g) => +new Date(g.created_at) <= toTs);
     rows = [...rows].sort((a, b) => {
       if (sort === "oldest") return +new Date(a.created_at) - +new Date(b.created_at);
-      if (sort === "score") return (b.title.length % 30) - (a.title.length % 30);
+      if (sort === "score") return (b.viral_score ?? 0) - (a.viral_score ?? 0);
       return +new Date(b.created_at) - +new Date(a.created_at);
     });
     return rows;
