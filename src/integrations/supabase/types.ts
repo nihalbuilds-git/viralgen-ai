@@ -107,6 +107,7 @@ export type Database = {
           title: string
           type: Database["public"]["Enums"]["generation_type"]
           user_id: string
+          viral_score: number | null
         }
         Insert: {
           created_at?: string
@@ -117,6 +118,7 @@ export type Database = {
           title: string
           type: Database["public"]["Enums"]["generation_type"]
           user_id: string
+          viral_score?: number | null
         }
         Update: {
           created_at?: string
@@ -127,6 +129,7 @@ export type Database = {
           title?: string
           type?: Database["public"]["Enums"]["generation_type"]
           user_id?: string
+          viral_score?: number | null
         }
         Relationships: []
       }
@@ -154,6 +157,51 @@ export type Database = {
           display_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          id: string
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          id?: string
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          id?: string
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -189,9 +237,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      consume_rate_limit: {
+        Args: {
+          _bucket: string
+          _max_count: number
+          _user_id: string
+          _window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_seconds: number
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "user"
       generation_type: "caption" | "adcopy" | "product" | "image"
     }
     CompositeTypes: {
@@ -320,6 +388,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "user"],
       generation_type: ["caption", "adcopy", "product", "image"],
     },
   },
